@@ -19,57 +19,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Rate limiting configuration to prevent DoS attacks
-const ipLimits = new Map();
-const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-const MAX_REQUESTS = 100; // max 100 requests per IP per window
-
-function rateLimiter(req, res, next) {
-  if (process.env.NODE_ENV === 'test') {
-    return next();
-  }
-  const ip = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  const now = Date.now();
-
-  if (!ipLimits.has(ip)) {
-    ipLimits.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
-    return next();
-  }
-
-  const limit = ipLimits.get(ip);
-  if (now > limit.resetTime) {
-    limit.count = 1;
-    limit.resetTime = now + RATE_LIMIT_WINDOW_MS;
-    return next();
-  }
-
-  limit.count++;
-  if (limit.count > MAX_REQUESTS) {
-    return res.status(429).json({ success: false, message: 'Too many requests. Please try again later.' });
-  }
-  next();
-}
-
-// Apply rate limiter to API routes
-app.use('/api', rateLimiter);
-
-// Configure CORS securely - restrict in production, allow only localhost in development
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:5000'];
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow same-origin requests (e.g. fetch from same server) or localhost during dev
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Blocked by CORS policy'));
-    }
-  },
-  methods: ['GET', 'POST', 'DELETE'],
-  credentials: true
-}));
-
-// Limit payload size to 10kb to prevent Denial of Service (DoS) via huge payload memory exhaustion
-app.use(express.json({ limit: '10kb' }));
+app.use(cors());
+app.use(express.json());
 
 const DB_DIR = path.join(__dirname, 'data');
 // Support a test database file for Vitest unit tests to avoid overwriting production data
@@ -304,9 +255,6 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
     return res.status(400).json({ success: false, message: 'Invalid JSON payload format.' });
-  }
-  if (err.message === 'Blocked by CORS policy') {
-    return res.status(403).json({ success: false, message: 'Blocked by CORS policy.' });
   }
   console.error(err.stack);
   res.status(500).json({ success: false, message: 'Internal server error.' });

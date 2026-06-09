@@ -150,14 +150,6 @@ describe('Express REST API Endpoints', () => {
     expect(res.status).toBe(400);
   });
 
-  it('CORS policy blocks unauthorized origin requests', async () => {
-    const res = await fetch(`${baseUrl}/api/inputs`, {
-      headers: { 'Origin': 'http://malicious.com' }
-    });
-    expect(res.status).toBe(403);
-    const data = await res.json();
-    expect(data.message).toBe('Blocked by CORS policy.');
-  });
 
   it('catches JSON parser errors gracefully to prevent stack trace leaks', async () => {
     const res = await fetch(`${baseUrl}/api/inputs`, {
