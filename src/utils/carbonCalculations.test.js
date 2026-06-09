@@ -152,4 +152,22 @@ describe('Carbon Calculation Formulas', () => {
       expect(report.total).toBe(1.8 + 2.4 + 1.5 + 0.21);
     });
   });
+
+  describe('Robustness and Prototype Safety', () => {
+    it('handles prototype pollution keys or invalid property lookups gracefully', () => {
+      // should fall back to gasoline default (factor 0.18)
+      expect(calculateTransportEmissions({ carKm: 10000, carType: 'toString' })).toBeCloseTo(1.8, 4);
+      expect(calculateTransportEmissions({ carKm: 10000, carType: '__proto__' })).toBeCloseTo(1.8, 4);
+
+      // should fall back to gas default (factor 0.20)
+      expect(calculateEnergyEmissions({ electricityKwh: 0, heatingFuel: 'toString', heatingAmount: 100, householdSize: 1 })).toBeCloseTo(0.24, 4);
+
+      // should fall back to average (2.5) and medium (1.10) defaults
+      expect(calculateFoodEmissions({ dietType: 'toString', foodWaste: 'toString' })).toBeCloseTo(2.5 * 1.10, 4);
+
+      // should fall back to medium (0.6, 0.4) and some (0.95) defaults
+      expect(calculateShoppingEmissions({ clothes: 'toString', electronics: 'toString', recycle: 'toString' })).toBeCloseTo((0.6 + 0.4) * 0.95, 4);
+    });
+  });
 });
+

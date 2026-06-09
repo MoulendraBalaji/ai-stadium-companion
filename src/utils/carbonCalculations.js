@@ -83,7 +83,9 @@ export function calculateTransportEmissions({
   const sFlights = Math.max(0, Number(shortFlights) || 0);
   const lFlights = Math.max(0, Number(longFlights) || 0);
 
-  const carFactor = EMISSION_FACTORS.transport.car[carType] || EMISSION_FACTORS.transport.car.gasoline;
+  const carFactor = (carType && Object.prototype.hasOwnProperty.call(EMISSION_FACTORS.transport.car, carType))
+    ? EMISSION_FACTORS.transport.car[carType]
+    : EMISSION_FACTORS.transport.car.gasoline;
   const transitFactor = EMISSION_FACTORS.transport.transit;
 
   const carEmissionsKg = cKm * carFactor;
@@ -107,7 +109,7 @@ export function calculateEnergyEmissions({
 }) {
   const eKwh = Math.max(0, Number(electricityKwh) || 0);
   const gPct = Math.min(100, Math.max(0, Number(greenEnergy) || 0)) / 100;
-  const hFuel = heatingFuel in EMISSION_FACTORS.energy.heating ? heatingFuel : 'gas';
+  const hFuel = (heatingFuel && Object.prototype.hasOwnProperty.call(EMISSION_FACTORS.energy.heating, heatingFuel)) ? heatingFuel : 'gas';
   const hAmount = Math.max(0, Number(heatingAmount) || 0);
   const hhSize = Math.max(1, Number(householdSize) || 1);
 
@@ -138,8 +140,12 @@ export function calculateFoodEmissions({
   dietType = 'average',
   foodWaste = 'medium'
 }) {
-  const dietBase = EMISSION_FACTORS.food.diet[dietType] || EMISSION_FACTORS.food.diet.average;
-  const wasteMultiplier = EMISSION_FACTORS.food.wasteMultiplier[foodWaste] || EMISSION_FACTORS.food.wasteMultiplier.medium;
+  const dietBase = (dietType && Object.prototype.hasOwnProperty.call(EMISSION_FACTORS.food.diet, dietType))
+    ? EMISSION_FACTORS.food.diet[dietType]
+    : EMISSION_FACTORS.food.diet.average;
+  const wasteMultiplier = (foodWaste && Object.prototype.hasOwnProperty.call(EMISSION_FACTORS.food.wasteMultiplier, foodWaste))
+    ? EMISSION_FACTORS.food.wasteMultiplier[foodWaste]
+    : EMISSION_FACTORS.food.wasteMultiplier.medium;
 
   return dietBase * wasteMultiplier;
 }
@@ -152,9 +158,15 @@ export function calculateShoppingEmissions({
   electronics = 'medium',
   recycle = 'some'
 }) {
-  const clothesBase = EMISSION_FACTORS.shopping.clothes[clothes] || EMISSION_FACTORS.shopping.clothes.medium;
-  const electronicsBase = EMISSION_FACTORS.shopping.electronics[electronics] || EMISSION_FACTORS.shopping.electronics.medium;
-  const recycleMultiplier = EMISSION_FACTORS.shopping.recycleMultiplier[recycle] || EMISSION_FACTORS.shopping.recycleMultiplier.some;
+  const clothesBase = (clothes && Object.prototype.hasOwnProperty.call(EMISSION_FACTORS.shopping.clothes, clothes))
+    ? EMISSION_FACTORS.shopping.clothes[clothes]
+    : EMISSION_FACTORS.shopping.clothes.medium;
+  const electronicsBase = (electronics && Object.prototype.hasOwnProperty.call(EMISSION_FACTORS.shopping.electronics, electronics))
+    ? EMISSION_FACTORS.shopping.electronics[electronics]
+    : EMISSION_FACTORS.shopping.electronics.medium;
+  const recycleMultiplier = (recycle && Object.prototype.hasOwnProperty.call(EMISSION_FACTORS.shopping.recycleMultiplier, recycle))
+    ? EMISSION_FACTORS.shopping.recycleMultiplier[recycle]
+    : EMISSION_FACTORS.shopping.recycleMultiplier.some;
 
   return (clothesBase + electronicsBase) * recycleMultiplier;
 }
