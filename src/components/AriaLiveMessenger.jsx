@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 /**
  * AriaLiveMessenger component
@@ -10,14 +10,23 @@ export default function AriaLiveMessenger({ announcement }) {
 
   useEffect(() => {
     if (announcement) {
-      setLiveText(announcement);
+      // Avoid calling setState synchronously inside useEffect
+      const stateTimer = setTimeout(() => {
+        setLiveText(announcement);
+      }, 0);
+
       // Clear after a brief period so subsequent identical messages trigger re-announcement
-      const timer = setTimeout(() => {
+      const clearTimer = setTimeout(() => {
         setLiveText('');
       }, 3000);
-      return () => clearTimeout(timer);
+
+      return () => {
+        clearTimeout(stateTimer);
+        clearTimeout(clearTimer);
+      };
     }
   }, [announcement]);
+
 
   return (
     <div 

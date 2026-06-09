@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Calculator from './components/Calculator';
 import Dashboard from './components/Dashboard';
 import ActionTracker from './components/ActionTracker';
@@ -231,11 +231,13 @@ export default function App() {
               { id: 'tracker', label: 'Habit Tracker', icon: '📝' },
               { id: 'simulator', label: 'Simulator', icon: '🎛️' },
               { id: 'insights', label: 'Insights', icon: '💡' }
-            ].map(tab => (
+            ].map((tab, index, array) => (
               <button
                 key={tab.id}
+                id={`tab-btn-${tab.id}`}
                 role="tab"
                 aria-selected={activeTab === tab.id}
+                tabIndex={activeTab === tab.id ? 0 : -1}
                 className={`segmented-btn ${activeTab === tab.id ? 'active' : ''}`}
                 style={{
                   padding: '0.4rem 0.8rem',
@@ -246,6 +248,23 @@ export default function App() {
                   gap: '0.3rem',
                 }}
                 onClick={() => handleTabChange(tab.id, tab.label)}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowRight') {
+                    const nextIdx = (index + 1) % array.length;
+                    const nextTab = array[nextIdx];
+                    handleTabChange(nextTab.id, nextTab.label);
+                    setTimeout(() => {
+                      document.getElementById(`tab-btn-${nextTab.id}`)?.focus();
+                    }, 0);
+                  } else if (e.key === 'ArrowLeft') {
+                    const prevIdx = (index - 1 + array.length) % array.length;
+                    const prevTab = array[prevIdx];
+                    handleTabChange(prevTab.id, prevTab.label);
+                    setTimeout(() => {
+                      document.getElementById(`tab-btn-${prevTab.id}`)?.focus();
+                    }, 0);
+                  }
+                }}
               >
                 <span className="nav-label-text">{tab.label}</span>
               </button>
@@ -336,6 +355,8 @@ export default function App() {
         >
           <div 
             className="card animate-fade-in" 
+            tabIndex="0"
+            aria-label="CarbonPulse guide information scroll container"
             style={{ 
               maxWidth: '520px', 
               width: '100%', 

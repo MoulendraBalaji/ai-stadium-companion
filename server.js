@@ -10,11 +10,23 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Security response headers middleware
+app.use((req, res, next) => {
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Content-Security-Policy', "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline';");
+  next();
+});
+
 app.use(cors());
 app.use(express.json());
 
 const DB_DIR = path.join(__dirname, 'data');
-const DB_FILE = path.join(DB_DIR, 'db.json');
+// Support a test database file for Vitest unit tests to avoid overwriting production data
+const DB_FILE = process.env.NODE_ENV === 'test'
+  ? path.join(DB_DIR, 'db_test.json')
+  : path.join(DB_DIR, 'db.json');
 
 // Default initial database layout
 const DEFAULT_DB = {
@@ -61,6 +73,68 @@ function writeDb(data) {
   }
 }
 
+// Input Sanitization and XSS Prevention
+function sanitizeString(str) {
+  if (typeof str !== 'string') return '';
+  return str.replace(/[<>]/g, '');
+}
+
+// Validate structure and data types of inputs payload
+function validateInputs(inputs) {
+  if (!inputs || typeof inputs !== 'object') return false;
+
+  const { transport, energy, food, shopping } = inputs;
+  if (!transport || typeof transport !== 'object') return false;
+  if (!energy || typeof energy !== 'object') return false;
+  if (!food || typeof food !== 'object') return false;
+  if (!shopping || typeof shopping !== 'object') return false;
+
+  // Transport validations
+  if (typeof transport.carKm !== 'number' || transport.carKm < 0) return false;
+  const allowedCarTypes = ['gasoline', 'diesel', 'hybrid', 'electric'];
+  if (!allowedCarTypes.includes(transport.carType)) return false;
+  if (typeof transport.transitKm !== 'number' || transport.transitKm < 0) return false;
+  if (typeof transport.shortFlights !== 'number' || transport.shortFlights < 0) return false;
+  if (typeof transport.longFlights !== 'number' || transport.longFlights < 0) return false;
+
+  // Energy validations
+  if (typeof energy.electricityKwh !== 'number' || energy.electricityKwh < 0) return false;
+  if (typeof energy.greenEnergy !== 'number' || energy.greenEnergy < 0 || energy.greenEnergy > 100) return false;
+  const allowedHeating = ['gas', 'oil', 'electric', 'none'];
+  if (!allowedHeating.includes(energy.heatingFuel)) return false;
+  if (typeof energy.heatingAmount !== 'number' || energy.heatingAmount < 0) return false;
+  if (typeof energy.householdSize !== 'number' || energy.householdSize < 1) return false;
+
+  // Food validations
+  const allowedDiets = ['meat-heavy', 'average', 'low-meat', 'vegetarian', 'vegan'];
+  if (!allowedDiets.includes(food.dietType)) return false;
+  const allowedWaste = ['low', 'medium', 'high'];
+  if (!allowedWaste.includes(food.foodWaste)) return false;
+
+  // Shopping validations
+  const allowedShopping = ['low', 'medium', 'high'];
+  if (!allowedShopping.includes(shopping.clothes)) return false;
+  if (!allowedShopping.includes(shopping.electronics)) return false;
+  const allowedRecycle = ['none', 'some', 'all'];
+  if (!allowedRecycle.includes(shopping.recycle)) return false;
+
+  return true;
+}
+
+// Validate structure and data types of action logs payload
+function validateAction(action) {
+  if (!action || typeof action !== 'object') return false;
+  if (typeof action.id !== 'string' || !action.id) return false;
+  if (typeof action.category !== 'string' || !action.category) return false;
+  if (typeof action.title !== 'string' || !action.title) return false;
+  if (typeof action.description !== 'string') return false;
+  if (typeof action.co2SavedKg !== 'number' || action.co2SavedKg < 0) return false;
+  if (typeof action.points !== 'number' || action.points < 0) return false;
+  const allowedDiff = ['easy', 'medium', 'hard'];
+  if (!allowedDiff.includes(action.difficulty)) return false;
+  return true;
+}
+
 // REST API routes
 
 // GET calculator inputs
@@ -71,8 +145,37 @@ app.get('/api/inputs', (req, res) => {
 
 // POST calculator inputs
 app.post('/api/inputs', (req, res) => {
+  if (!validateInputs(req.body)) {
+    return res.status(400).json({ success: false, message: 'Invalid input payload structure or types.' });
+  }
+
   const db = readDb();
-  db.inputs = req.body;
+  db.inputs = {
+    transport: {
+      carKm: req.body.transport.carKm,
+      carType: sanitizeString(req.body.transport.carType),
+      transitKm: req.body.transport.transitKm,
+      shortFlights: req.body.transport.shortFlights,
+      longFlights: req.body.transport.longFlights
+    },
+    energy: {
+      electricityKwh: req.body.energy.electricityKwh,
+      greenEnergy: req.body.energy.greenEnergy,
+      heatingFuel: sanitizeString(req.body.energy.heatingFuel),
+      heatingAmount: req.body.energy.heatingAmount,
+      householdSize: req.body.energy.householdSize
+    },
+    food: {
+      dietType: sanitizeString(req.body.food.dietType),
+      foodWaste: sanitizeString(req.body.food.foodWaste)
+    },
+    shopping: {
+      clothes: sanitizeString(req.body.shopping.clothes),
+      electronics: sanitizeString(req.body.shopping.electronics),
+      recycle: sanitizeString(req.body.shopping.recycle)
+    }
+  };
+
   if (writeDb(db)) {
     res.json({ success: true, message: 'Inputs saved successfully.' });
   } else {
@@ -88,15 +191,22 @@ app.get('/api/actions', (req, res) => {
 
 // POST log action
 app.post('/api/actions', (req, res) => {
+  if (!validateAction(req.body)) {
+    return res.status(400).json({ success: false, message: 'Invalid action payload structure or types.' });
+  }
+
   const db = readDb();
-  const newAction = req.body;
-  
-  if (!newAction.logId) {
-    newAction.logId = Date.now().toString();
-  }
-  if (!newAction.timestamp) {
-    newAction.timestamp = new Date().toLocaleDateString();
-  }
+  const newAction = {
+    id: sanitizeString(req.body.id),
+    category: sanitizeString(req.body.category),
+    title: sanitizeString(req.body.title),
+    description: sanitizeString(req.body.description),
+    co2SavedKg: req.body.co2SavedKg,
+    points: req.body.points,
+    difficulty: sanitizeString(req.body.difficulty),
+    logId: req.body.logId ? sanitizeString(req.body.logId) : Date.now().toString(),
+    timestamp: req.body.timestamp ? sanitizeString(req.body.timestamp) : new Date().toLocaleDateString()
+  };
 
   db.actions = db.actions || [];
   db.actions.unshift(newAction); // prepend new action logs
@@ -140,6 +250,11 @@ app.use((req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Express server running on port ${PORT}`);
-});
+// Only listen when not in a test environment to allow dynamic testing ports
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`Express server running on port ${PORT}`);
+  });
+}
+
+export default app;

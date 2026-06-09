@@ -1,4 +1,3 @@
-import React from 'react';
 import { BENCHMARKS } from '../utils/carbonCalculations';
 
 export default function Dashboard({ emissions }) {

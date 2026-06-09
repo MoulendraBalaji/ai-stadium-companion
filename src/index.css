@@ -413,3 +413,18 @@ input[type="range"]::-webkit-slider-thumb {
 input[type="range"]::-webkit-slider-thumb:hover {
   transform: scale(1.15);
 }
+
+/* Accessibility: Focus visible outline styles for keyboard navigators */
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+div[tabindex="0"]:focus-visible {
+  outline: 2px solid var(--accent-primary) !important;
+  outline-offset: 3px !important;
+}
+
+input[type="range"]:focus-visible {
+  outline: 2px solid var(--accent-primary) !important;
+  outline-offset: 4px !important;
+}
+

@@ -1,7 +1,5 @@
-import React from 'react';
-
 export default function Insights({ inputs, emissions }) {
-  const { transport, energy, food, shopping, total } = emissions;
+  const { food } = emissions;
 
   // Generate customized advice lists based on actual user inputs
   const generateInsights = () => {
@@ -135,6 +133,13 @@ export default function Insights({ inputs, emissions }) {
         urgency: 'low'
       });
     }
+
+    // Sort tips by the user's emissions in that category in descending order
+    list.sort((a, b) => {
+      const valA = emissions[a.category] || 0;
+      const valB = emissions[b.category] || 0;
+      return valB - valA;
+    });
 
     return list;
   };

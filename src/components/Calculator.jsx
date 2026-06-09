@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 export default function Calculator({ inputs, setInputs, onCalculate }) {
   const [step, setStep] = useState(1);
@@ -245,14 +245,33 @@ export default function Calculator({ inputs, setInputs, onCalculate }) {
             <div className="form-group">
               <label className="form-label">Primary Diet Profile</label>
               <div className="segmented-control" role="radiogroup" aria-label="Dietary Profile">
-                {['meat-heavy', 'average', 'low-meat', 'vegetarian', 'vegan'].map((type) => (
+                {['meat-heavy', 'average', 'low-meat', 'vegetarian', 'vegan'].map((type, index, array) => (
                   <button
                     key={type}
+                    id={`diet-opt-${type}`}
                     type="button"
                     role="radio"
                     aria-checked={inputs.food.dietType === type}
+                    tabIndex={inputs.food.dietType === type ? 0 : -1}
                     className={`segmented-btn ${inputs.food.dietType === type ? 'active' : ''}`}
                     onClick={() => updateSector('food', 'dietType', type)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                        const nextIdx = (index + 1) % array.length;
+                        const nextType = array[nextIdx];
+                        updateSector('food', 'dietType', nextType);
+                        setTimeout(() => {
+                          document.getElementById(`diet-opt-${nextType}`)?.focus();
+                        }, 0);
+                      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                        const prevIdx = (index - 1 + array.length) % array.length;
+                        const prevType = array[prevIdx];
+                        updateSector('food', 'dietType', prevType);
+                        setTimeout(() => {
+                          document.getElementById(`diet-opt-${prevType}`)?.focus();
+                        }, 0);
+                      }
+                    }}
                     style={{ fontSize: '0.75rem', textTransform: 'capitalize' }}
                   >
                     {type.replace('-', ' ')}

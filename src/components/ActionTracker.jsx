@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ACTIONS } from '../utils/actionDatabase';
 
 export default function ActionTracker({ loggedActions, onLogAction, onRemoveAction }) {
@@ -112,7 +112,11 @@ export default function ActionTracker({ loggedActions, onLogAction, onRemoveActi
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '450px', overflowY: 'auto', paddingRight: '0.5rem' }}>
+          <div 
+            tabIndex="0"
+            aria-label="Predefined action catalog"
+            style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '450px', overflowY: 'auto', paddingRight: '0.5rem' }}
+          >
             {filteredActions.map(action => (
               <div 
                 key={action.id}
@@ -168,7 +172,11 @@ export default function ActionTracker({ loggedActions, onLogAction, onRemoveActi
               <p style={{ fontSize: '0.85rem' }}>No actions logged today yet. Log items from the menu to start saving carbon!</p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', overflowY: 'auto', flex: 1, paddingRight: '0.25rem' }}>
+            <div 
+              tabIndex="0"
+              aria-label="Logged actions history list"
+              style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', overflowY: 'auto', flex: 1, paddingRight: '0.25rem' }}
+            >
               {loggedActions.map((log) => (
                 <div 
                   key={log.logId}
