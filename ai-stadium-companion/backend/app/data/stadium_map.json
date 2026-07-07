@@ -1,0 +1,35 @@
+{
+  "_comment": "SIMULATED DATA. In production, this would be sourced from a Stadium BIM model or a Geographic Information System (GIS) database.",
+  "nodes": [
+    {"id": "gate_a", "name": "Gate A (North Entrance)", "type": "gate", "accessible": true, "zone": "North"},
+    {"id": "gate_b", "name": "Gate B (South Entrance)", "type": "gate", "accessible": true, "zone": "South"},
+    {"id": "gate_c", "name": "Gate C (East Entrance)", "type": "gate", "accessible": true, "zone": "East"},
+    {"id": "gate_d", "name": "Gate D (West Entrance)", "type": "gate", "accessible": false, "zone": "West"},
+    {"id": "section_101", "name": "Section 101", "type": "section", "accessible": true, "zone": "North"},
+    {"id": "section_114", "name": "Section 114", "type": "section", "accessible": true, "zone": "South"},
+    {"id": "section_120", "name": "Section 120", "type": "section", "accessible": true, "zone": "East"},
+    {"id": "restroom_north_1", "name": "North Restroom 1 (Standard)", "type": "restroom", "accessible": false, "zone": "North"},
+    {"id": "restroom_north_2", "name": "North Restroom 2 (Accessible)", "type": "restroom", "accessible": true, "zone": "North"},
+    {"id": "restroom_south_1", "name": "South Restroom 1 (Accessible)", "type": "restroom", "accessible": true, "zone": "South"},
+    {"id": "food_concession_1", "name": "Tacos El Capitan (Food)", "type": "food", "accessible": true, "zone": "East"},
+    {"id": "food_concession_2", "name": "Burger Arena (Food)", "type": "food", "accessible": true, "zone": "West"},
+    {"id": "elevator_1", "name": "North Elevator", "type": "elevator", "accessible": true, "zone": "North"},
+    {"id": "stairs_1", "name": "North Stairs", "type": "stairs", "accessible": false, "zone": "North"}
+  ],
+  "edges": [
+    {"source": "gate_a", "target": "section_101", "weight": 50, "accessible": true},
+    {"source": "section_101", "target": "stairs_1", "weight": 20, "accessible": false},
+    {"source": "section_101", "target": "elevator_1", "weight": 30, "accessible": true},
+    {"source": "stairs_1", "target": "restroom_north_1", "weight": 10, "accessible": false},
+    {"source": "elevator_1", "target": "restroom_north_2", "weight": 15, "accessible": true},
+    {"source": "restroom_north_2", "target": "restroom_north_1", "weight": 20, "accessible": false},
+    {"source": "gate_b", "target": "section_114", "weight": 60, "accessible": true},
+    {"source": "section_114", "target": "restroom_south_1", "weight": 25, "accessible": true},
+    {"source": "gate_c", "target": "section_120", "weight": 40, "accessible": true},
+    {"source": "section_120", "target": "food_concession_1", "weight": 30, "accessible": true},
+    {"source": "gate_d", "target": "food_concession_2", "weight": 35, "accessible": false},
+    {"source": "food_concession_2", "target": "section_114", "weight": 80, "accessible": false},
+    {"source": "section_101", "target": "section_120", "weight": 120, "accessible": true},
+    {"source": "section_120", "target": "section_114", "weight": 150, "accessible": true}
+  ]
+}

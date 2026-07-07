@@ -1,0 +1,62 @@
+name: Stadium Companion CI Workflow
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          cd ai-stadium-companion/backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Lint with black & ruff
+        run: |
+          cd ai-stadium-companion/backend
+          black --check .
+          ruff check .
+
+      - name: Run unit tests with pytest
+        run: |
+          cd ai-stadium-companion/backend
+          pytest -v
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'ai-stadium-companion/frontend/package.json'
+
+      - name: Install Node packages
+        run: |
+          cd ai-stadium-companion/frontend
+          npm install
+
+      - name: Build TypeScript / Vite
+        run: |
+          cd ai-stadium-companion/frontend
+          npm run build
+
+      - name: Run Vitest unit tests
+        run: |
+          cd ai-stadium-companion/frontend
+          npm test

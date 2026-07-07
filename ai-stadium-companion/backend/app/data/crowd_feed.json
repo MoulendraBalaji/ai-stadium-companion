@@ -1,0 +1,48 @@
+{
+  "_comment": "SIMULATED TELEMETRY. In production, this would ingest data from turnstiles, video camera crowd-density analysis, and stadium Wi-Fi/Bluetooth beacons.",
+  "timestamp": "2026-07-07T20:30:56Z",
+  "zones": [
+    {
+      "zone_id": "North",
+      "zone_name": "North Stands & Gate A",
+      "density_score": 0.35,
+      "occupancy_percentage": 42.0,
+      "queue_time_minutes": 5
+    },
+    {
+      "zone_id": "South",
+      "zone_name": "South Stands & Gate B",
+      "density_score": 0.45,
+      "occupancy_percentage": 55.0,
+      "queue_time_minutes": 8
+    },
+    {
+      "zone_id": "East",
+      "zone_name": "East Stands & Gate C",
+      "density_score": 0.92,
+      "occupancy_percentage": 92.0,
+      "queue_time_minutes": 25
+    },
+    {
+      "zone_id": "West",
+      "zone_name": "West Stands & Gate D",
+      "density_score": 0.60,
+      "occupancy_percentage": 68.0,
+      "queue_time_minutes": 12
+    }
+  ],
+  "node_congestion": {
+    "gate_a": 0.30,
+    "gate_b": 0.40,
+    "gate_c": 0.95,
+    "gate_d": 0.65,
+    "section_101": 0.35,
+    "section_114": 0.50,
+    "section_120": 0.90,
+    "restroom_north_1": 0.20,
+    "restroom_north_2": 0.15,
+    "restroom_south_1": 0.70,
+    "food_concession_1": 0.85,
+    "food_concession_2": 0.40
+  }
+}
