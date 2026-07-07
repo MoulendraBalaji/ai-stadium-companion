@@ -19,20 +19,20 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd ai-stadium-companion/backend
+          cd backend
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Lint with black & ruff
         run: |
-          cd ai-stadium-companion/backend
+          cd backend
           black --check .
           ruff check .
 
       - name: Run unit tests with pytest
         run: |
-          cd ai-stadium-companion/backend
-          pytest -v
+          cd backend
+          python -m pytest -v
 
   frontend:
     runs-on: ubuntu-latest
@@ -44,19 +44,19 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: 'ai-stadium-companion/frontend/package.json'
+          cache-dependency-path: 'frontend/package.json'
 
       - name: Install Node packages
         run: |
-          cd ai-stadium-companion/frontend
+          cd frontend
           npm install
 
       - name: Build TypeScript / Vite
         run: |
-          cd ai-stadium-companion/frontend
+          cd frontend
           npm run build
 
       - name: Run Vitest unit tests
         run: |
-          cd ai-stadium-companion/frontend
+          cd frontend
           npm test
