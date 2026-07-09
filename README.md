@@ -143,3 +143,25 @@ Checks rendering states, interactive tab selections, and Speech mock contexts:
 cd frontend
 npm run test
 ```
+
+---
+
+## 🚀 Production Deployment & Environment Variables
+
+To run the application in production with live Gemini AI capabilities (not Mock Mode) and prevent credentials leakage, you **must not** commit the `.env` file to Git. Instead, set the environment variables directly in the dashboards of Vercel and Railway.
+
+### 1. Backend Service (Railway)
+1. In the **Railway** console, create a service pointing to your repository.
+2. In settings, set the **Root Directory** to `backend`.
+3. In the **Variables** tab, add the following variables:
+   * `GEMINI_API_KEY`: `<your_gemini_api_key>` *(your API key, e.g. AQ.Ab8...)*
+   * `CORS_ORIGINS`: `*` *(or your Vercel frontend URL, e.g. `https://stadium-companion.vercel.app`)*
+   * `ENVIRONMENT`: `production`
+4. Deploy the service. Take note of your public domain provided by Railway (e.g. `https://backend-production-xxxx.up.railway.app`).
+
+### 2. Frontend Service (Vercel)
+1. In the **Vercel** dashboard, import your repository.
+2. Set the **Environment Variables** under project settings:
+   * `VITE_API_URL`: `https://backend-production-xxxx.up.railway.app` *(pointing to the Railway URL from Step 1)*
+3. Deploy the project. Vercel will automatically read the root `vercel.json`, install node packages, and compile the Vite files cleanly.
+
