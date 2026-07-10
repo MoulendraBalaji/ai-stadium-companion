@@ -58,8 +58,7 @@ export interface ChatMessage {
   content: string;
 }
 
-const metaEnv = (import.meta as any).env;
-const API_BASE = (metaEnv?.VITE_API_URL || '').replace(/\/$/, '') || '/api';
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '') || '/api';
 
 /**
  * Custom fetch wrapper to handle errors consistently
@@ -89,30 +88,62 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  getRoute: (currentLocation: string, destinationIntent: string, accessibleOnly: boolean): Promise<RouteResponse> => {
+  getRoute: (
+    currentLocation: string,
+    destinationIntent: string,
+    accessibleOnly: boolean,
+    stadiumId: string = 'stadium_metlife'
+  ): Promise<RouteResponse> => {
     return apiFetch<RouteResponse>('/navigation/route', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         current_location: currentLocation,
         destination_intent: destinationIntent,
-        accessible_only: accessibleOnly
+        accessible_only: accessibleOnly,
+        stadium_id: stadiumId
       })
     });
   },
 
-  getCrowdStatus: (): Promise<CrowdStatusResponse> => {
-    return apiFetch<CrowdStatusResponse>('/crowd/status');
+  getCrowdStatus: (stadiumId: string = 'stadium_metlife'): Promise<CrowdStatusResponse> => {
+    return apiFetch<CrowdStatusResponse>(`/crowd/status?stadium_id=${stadiumId}`);
   },
 
-  getOpsSummary: (): Promise<OpsSummaryResponse> => {
-    return apiFetch<OpsSummaryResponse>('/ops/summary', {
-      method: 'POST'
+  getOpsSummary: (stadiumId: string = 'stadium_metlife'): Promise<OpsSummaryResponse> => {
+    return apiFetch<OpsSummaryResponse>(`/ops/summary?stadium_id=${stadiumId}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer metlife_director_2026'
+      }
     });
   },
 
-  getTransitSuggestions: (origin: string): Promise<TransitResponse> => {
-    return apiFetch<TransitResponse>(`/transit/suggestions?origin=${encodeURIComponent(origin)}`);
+  getTransitSuggestions: (origin: string, stadiumId: string = 'stadium_metlife'): Promise<TransitResponse> => {
+    return apiFetch<TransitResponse>(`/transit/suggestions?origin=${encodeURIComponent(origin)}&stadium_id=${stadiumId}`);
+  },
+
+  reportIncident: (
+    reporterRole: string,
+    locationNodeId: string,
+    incidentType: string,
+    details: string,
+    stadiumId: string = 'stadium_metlife'
+  ): Promise<{ success: boolean; incident_id: string; message: string }> => {
+    return apiFetch<{ success: boolean; incident_id: string; message: string }>('/ops/report', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer metlife_director_2026'
+      },
+      body: JSON.stringify({
+        reporter_role: reporterRole,
+        location_node_id: locationNodeId,
+        incident_type: incidentType,
+        details: details,
+        stadium_id: stadiumId
+      })
+    });
   },
 
   /**

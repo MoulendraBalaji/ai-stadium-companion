@@ -8,16 +8,7 @@ MAP_PATH = os.path.join(
 )
 
 
-class RouteNotFoundError(Exception):
-    """Raised when no route can be found between two nodes."""
-
-    pass
-
-
-class NodeNotFoundError(Exception):
-    """Raised when a specified node ID does not exist."""
-
-    pass
+from app.exceptions import RouteNotFoundError, NodeNotFoundError
 
 
 def load_stadium_map() -> dict[str, Any]:

@@ -395,6 +395,7 @@ export const MapView: React.FC<MapViewProps> = ({ lastRouteIntent }) => {
                 <g
                   key={nodeId}
                   className="cursor-pointer outline-none"
+                  role="button"
                   onClick={() => selectNode(nodeId)}
                   onMouseEnter={() => setFocusedNode(nodeId)}
                   onMouseLeave={() => setFocusedNode(null)}

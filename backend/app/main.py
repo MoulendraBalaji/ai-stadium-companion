@@ -8,6 +8,15 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import settings
+from app.exceptions import (
+    RouteNotFoundError,
+    NodeNotFoundError,
+    UnsupportedLanguageError,
+    AuthenticationError,
+    ForbiddenAccessError,
+    RateLimitExceededError,
+    ConcurrentConnectionsExceededError,
+)
 from app.routers import assistant, crowd, navigation, ops_dashboard, transit
 
 # Configure logger
@@ -62,18 +71,40 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
+# Security Headers Middleware
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
+        response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none';"
+        return response
+
+
 app.add_middleware(RateLimitMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 
 # CORS configuration
-allow_origins = settings.cors_origins_list
-allow_credentials = True
-if "*" in allow_origins:
-    allow_credentials = False
+allow_origins = [origin for origin in settings.cors_origins_list if origin != "*"]
+if not allow_origins or settings.ENVIRONMENT == "development":
+    allow_origins.extend([
+        "http://localhost:5234",
+        "http://127.0.0.1:5234",
+        "http://localhost:5173",
+        "http://localhost:3000",
+    ])
+
+allow_origins = list(set(allow_origins))
+allow_origin_regex = r"https://.*\.vercel\.app"
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allow_origins,
-    allow_credentials=allow_credentials,
+    allow_origin_regex=allow_origin_regex,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -112,6 +143,41 @@ app.include_router(assistant.router)
 app.include_router(crowd.router)
 app.include_router(ops_dashboard.router)
 app.include_router(transit.router)
+
+
+@app.exception_handler(RouteNotFoundError)
+async def route_not_found_handler(request: Request, exc: RouteNotFoundError):
+    return JSONResponse(status_code=404, content={"detail": exc.message})
+
+
+@app.exception_handler(NodeNotFoundError)
+async def node_not_found_handler(request: Request, exc: NodeNotFoundError):
+    return JSONResponse(status_code=404, content={"detail": exc.message})
+
+
+@app.exception_handler(UnsupportedLanguageError)
+async def unsupported_language_handler(request: Request, exc: UnsupportedLanguageError):
+    return JSONResponse(status_code=400, content={"detail": exc.message})
+
+
+@app.exception_handler(AuthenticationError)
+async def authentication_handler(request: Request, exc: AuthenticationError):
+    return JSONResponse(status_code=401, content={"detail": exc.message})
+
+
+@app.exception_handler(ForbiddenAccessError)
+async def forbidden_access_handler(request: Request, exc: ForbiddenAccessError):
+    return JSONResponse(status_code=403, content={"detail": exc.message})
+
+
+@app.exception_handler(RateLimitExceededError)
+async def rate_limit_handler(request: Request, exc: RateLimitExceededError):
+    return JSONResponse(status_code=429, content={"detail": exc.message})
+
+
+@app.exception_handler(ConcurrentConnectionsExceededError)
+async def concurrent_connections_handler(request: Request, exc: ConcurrentConnectionsExceededError):
+    return JSONResponse(status_code=429, content={"detail": exc.message})
 
 
 @app.get("/health")

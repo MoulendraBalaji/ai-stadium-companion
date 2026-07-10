@@ -187,7 +187,11 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({ onRouteRequested }
                   <span className="text-[10px] font-semibold text-primary font-display uppercase tracking-wider">Companion</span>
                 </div>
               )}
-              <div className={`whitespace-pre-wrap text-sm ${msg.role === 'user' ? 'font-medium' : ''}`}>
+              <div
+                dir={msg.content && /[\u0600-\u06FF]/.test(msg.content) ? 'rtl' : 'ltr'}
+                aria-live={msg.role === 'assistant' ? 'polite' : 'off'}
+                className={`whitespace-pre-wrap text-sm ${msg.role === 'user' ? 'font-medium' : ''}`}
+              >
                 {msg.content || (isStreaming && idx === messages.length - 1 ? (
                   <span className="flex items-center gap-1">
                     {TYPING_DOTS.map((dot, i) => (

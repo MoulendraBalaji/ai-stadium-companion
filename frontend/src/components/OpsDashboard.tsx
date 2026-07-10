@@ -10,10 +10,38 @@ export const OpsDashboard: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [completedActions, setCompletedActions] = useState<Record<number, boolean>>({});
 
+  // Incident form states
+  const [repRole, setRepRole] = useState('Volunteer');
+  const [incLoc, setIncLoc] = useState('gate_c');
+  const [incType, setIncType] = useState('Spill');
+  const [incDetails, setIncDetails] = useState('');
+  const [isReporting, setIsReporting] = useState(false);
+  const [reportSuccess, setReportSuccess] = useState(false);
+
   useEffect(() => {
     fetchTelemetry();
     generateAISummary();
   }, []);
+
+  const handleIncidentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsReporting(true);
+    setReportSuccess(false);
+    setErrorMsg(null);
+    try {
+      await api.reportIncident(repRole, incLoc, incType, incDetails);
+      setReportSuccess(true);
+      setIncDetails('');
+      await fetchTelemetry();
+      await generateAISummary();
+      setTimeout(() => setReportSuccess(false), 4000);
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg(err.message || 'Failed to submit staff incident report.');
+    } finally {
+      setIsReporting(false);
+    }
+  };
 
   const fetchTelemetry = async () => {
     setIsLoadingFeed(true);
@@ -121,60 +149,140 @@ export const OpsDashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-canvas-soft border-1 border-hairline rounded-xl p-5 flex flex-col shadow-lg">
-          <div className="flex items-center justify-between pb-4 border-b border-hairline">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 border-1 border-primary/20 flex items-center justify-center">
-                <Layers size={15} className="text-primary" />
+        <div className="flex flex-col gap-6">
+          <div className="bg-canvas-soft border-1 border-hairline rounded-xl p-5 flex flex-col shadow-lg">
+            <div className="flex items-center justify-between pb-4 border-b border-hairline">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 border-1 border-primary/20 flex items-center justify-center">
+                  <Layers size={15} className="text-primary" />
+                </div>
+                <h2 className="text-sm font-bold font-tech uppercase tracking-wider text-ink-strong">Live Telemetry</h2>
               </div>
-              <h2 className="text-sm font-bold font-tech uppercase tracking-wider text-ink-strong">Live Telemetry</h2>
+              <button
+                onClick={fetchTelemetry}
+                disabled={isLoadingFeed}
+                className="p-2 rounded-lg border-1 border-hairline text-mute hover:text-primary hover:border-primary/30 transition-all duration-300 bg-canvas hover:bg-canvas-elevated active:scale-95"
+                aria-label="Refresh sensor feed"
+                title="Refresh feed"
+              >
+                <RefreshCw size={13} className={isLoadingFeed ? 'animate-spin' : ''} />
+              </button>
             </div>
-            <button
-              onClick={fetchTelemetry}
-              disabled={isLoadingFeed}
-              className="p-2 rounded-lg border-1 border-hairline text-mute hover:text-primary hover:border-primary/30 transition-all duration-300 bg-canvas hover:bg-canvas-elevated active:scale-95"
-              aria-label="Refresh sensor feed"
-              title="Refresh feed"
-            >
-              <RefreshCw size={13} className={isLoadingFeed ? 'animate-spin' : ''} />
-            </button>
+
+            <div className="mt-4 space-y-3 flex-1">
+              {zones.length === 0 && isLoadingFeed && (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-[72px] rounded-lg shimmer-loading" />
+                  ))}
+                </div>
+              )}
+              {zones.map((zone, idx) => (
+                <div
+                  key={zone.zone_id}
+                  className="p-4 bg-canvas border-1 border-hairline rounded-lg flex items-center justify-between card-hover animate-fade-in-up"
+                  style={{ animationDelay: `${idx * 60}ms` }}
+                >
+                  <div className="space-y-1">
+                    <div className="font-bold text-ink-strong font-display">{zone.zone_name}</div>
+                    <div className="text-[10px] text-mute font-mono">ID: {zone.zone_id} &middot; Score: {zone.density_score}</div>
+                  </div>
+                  <div className="flex items-center gap-5">
+                    <div className="text-right">
+                      <div className="text-[10px] text-mute font-sans uppercase tracking-wider">Wait</div>
+                      <div className="font-bold font-mono text-ink-strong">{zone.queue_time_minutes}m</div>
+                    </div>
+                    <div className="text-right min-w-[100px]">
+                      <div className="text-[10px] text-mute font-sans uppercase tracking-wider">Density</div>
+                      <span className={`text-[10px] font-bold font-mono py-1 px-2 rounded-full inline-block mt-0.5 border-1 ${getStatusStyle(zone.status)}`}>
+                        {zone.status}: {zone.occupancy_percentage}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 text-[10px] text-mute italic font-sans border-t border-hairline pt-3">
+              Values are simulated live IoT sensor telemetry.
+            </div>
           </div>
 
-          <div className="mt-4 space-y-3 flex-1">
-            {zones.length === 0 && isLoadingFeed && (
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-[72px] rounded-lg shimmer-loading" />
-                ))}
+          {/* Volunteer Incident Report Form */}
+          <div className="bg-canvas-soft border-1 border-hairline rounded-xl p-5 flex flex-col shadow-lg">
+            <div className="flex items-center gap-2.5 pb-4 border-b border-hairline mb-4">
+              <div className="w-8 h-8 rounded-lg bg-red-500/10 border-1 border-red-500/20 flex items-center justify-center">
+                <ShieldAlert size={15} className="text-red-400" />
               </div>
-            )}
-            {zones.map((zone, idx) => (
-              <div
-                key={zone.zone_id}
-                className="p-4 bg-canvas border-1 border-hairline rounded-lg flex items-center justify-between card-hover animate-fade-in-up"
-                style={{ animationDelay: `${idx * 60}ms` }}
+              <h2 className="text-sm font-bold font-tech uppercase tracking-wider text-ink-strong">Staff Incident Report</h2>
+            </div>
+
+            <form onSubmit={handleIncidentSubmit} className="space-y-4 font-sans text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] text-mute uppercase font-semibold mb-1">Your Role</label>
+                  <select
+                    value={repRole}
+                    onChange={(e) => setRepRole(e.target.value)}
+                    className="w-full bg-canvas text-ink border-1 border-hairline rounded-lg p-2 focus:border-red-400 focus:outline-none"
+                  >
+                    <option value="Volunteer">Volunteer</option>
+                    <option value="Organizer">Organizer</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] text-mute uppercase font-semibold mb-1">Location</label>
+                  <select
+                    value={incLoc}
+                    onChange={(e) => setIncLoc(e.target.value)}
+                    className="w-full bg-canvas text-ink border-1 border-hairline rounded-lg p-2 focus:border-red-400 focus:outline-none"
+                  >
+                    <option value="gate_c">Gate C - East Entrance</option>
+                    <option value="gate_a">Gate A - North Entrance</option>
+                    <option value="gate_b">Gate B - Main Gate</option>
+                    <option value="sec_114">Section 114 Corridor</option>
+                    <option value="sec_112">Section 112 Lobby</option>
+                    <option value="concessions_east">Concessions East</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] text-mute uppercase font-semibold mb-1">Incident Type</label>
+                <select
+                  value={incType}
+                  onChange={(e) => setIncType(e.target.value)}
+                  className="w-full bg-canvas text-ink border-1 border-hairline rounded-lg p-2 focus:border-red-400 focus:outline-none"
+                >
+                  <option value="Spill">Spill / Slip Hazard</option>
+                  <option value="Crowd Surge">Crowd Surge / Bottleneck</option>
+                  <option value="Medical">Medical Assistance Needed</option>
+                  <option value="Security Alert">Security Incident</option>
+                  <option value="Gate Equipment Failure">Turnstile / Gate Malfunction</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] text-mute uppercase font-semibold mb-1">Details & Description</label>
+                <textarea
+                  value={incDetails}
+                  onChange={(e) => setIncDetails(e.target.value)}
+                  rows={3}
+                  placeholder="Describe the issue concisely..."
+                  className="w-full bg-canvas text-ink border-1 border-hairline rounded-lg p-2 focus:border-red-400 focus:outline-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isReporting || !incDetails.trim()}
+                className="w-full py-2.5 px-4 rounded-lg bg-red-500 hover:bg-red-600 disabled:opacity-40 text-canvas font-semibold transition-all duration-300 active:scale-95 flex items-center justify-center gap-2"
               >
-                <div className="space-y-1">
-                  <div className="font-bold text-ink-strong font-display">{zone.zone_name}</div>
-                  <div className="text-[10px] text-mute font-mono">ID: {zone.zone_id} &middot; Score: {zone.density_score}</div>
-                </div>
-                <div className="flex items-center gap-5">
-                  <div className="text-right">
-                    <div className="text-[10px] text-mute font-sans uppercase tracking-wider">Wait</div>
-                    <div className="font-bold font-mono text-ink-strong">{zone.queue_time_minutes}m</div>
-                  </div>
-                  <div className="text-right min-w-[60px]">
-                    <div className="text-[10px] text-mute font-sans uppercase tracking-wider">Density</div>
-                    <span className={`text-[11px] font-bold font-mono py-1 px-2.5 rounded-full inline-block mt-0.5 border-1 ${getStatusStyle(zone.status)}`}>
-                      {zone.occupancy_percentage}%
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 text-[10px] text-mute italic font-sans border-t border-hairline pt-3">
-            Values are simulated live IoT sensor telemetry.
+                {isReporting ? 'Logging incident...' : 'Submit Operational Report'}
+              </button>
+              {reportSuccess && (
+                <p className="text-[10px] text-emerald-400 font-medium text-center">Report logged! Updating AI operational report...</p>
+              )}
+            </form>
           </div>
         </div>
 

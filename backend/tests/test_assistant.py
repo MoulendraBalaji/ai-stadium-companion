@@ -55,7 +55,8 @@ def test_crowd_status():
 
 
 def test_ops_summary():
-    response = client.post("/api/ops/summary")
+    headers = {"Authorization": "Bearer metlife_director_2026"}
+    response = client.post("/api/ops/summary", headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert "summary" in data

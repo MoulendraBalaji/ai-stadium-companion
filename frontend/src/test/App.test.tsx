@@ -29,4 +29,28 @@ describe('App Shell Layout and Interaction', () => {
     fireEvent.click(staffTabButton);
     expect(screen.getByTestId('ops-dashboard')).toBeDefined();
   });
+
+  it('switches to Eco-Transit tab and displays the transit planner', () => {
+    render(<App />);
+    const transitTabButton = screen.getByRole('button', { name: /Eco-Transit/i });
+    fireEvent.click(transitTabButton);
+    expect(screen.getByText(/Eco-Friendly Transit Suggester/i)).toBeDefined();
+  });
+
+  it('contains the accessibility skip-link', () => {
+    render(<App />);
+    const skipLink = screen.getByText(/Skip to main content/i);
+    expect(skipLink).toBeDefined();
+    expect(skipLink.getAttribute('href')).toBe('#main-content');
+  });
+
+  it('toggles high contrast mode on button click', () => {
+    render(<App />);
+    const contrastButton = screen.getByRole('button', { name: /Enable high contrast theme/i });
+    expect(contrastButton).toBeDefined();
+    fireEvent.click(contrastButton);
+    // After toggle, aria-label should switch to disable
+    const updatedButton = screen.getByRole('button', { name: /Disable high contrast theme/i });
+    expect(updatedButton).toBeDefined();
+  });
 });

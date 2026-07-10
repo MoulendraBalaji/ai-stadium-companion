@@ -158,6 +158,7 @@ async def get_route(request: RouteRequest):
             accessible_only=request.accessible_only,
             congestion_level="Low",
             destination_node_id="",
+            stadium_id=request.stadium_id,
         )
 
     # Run Dijkstra towards all potential target nodes, pick the shortest
@@ -200,6 +201,7 @@ async def get_route(request: RouteRequest):
             accessible_only=request.accessible_only,
             congestion_level="Low",
             destination_node_id="",
+            stadium_id=request.stadium_id,
         )
 
     # Generate friendly text descriptions
@@ -228,4 +230,5 @@ async def get_route(request: RouteRequest):
         accessible_only=request.accessible_only,
         congestion_level=congestion_level,
         destination_node_id=best_target_id,
+        stadium_id=request.stadium_id,
     )

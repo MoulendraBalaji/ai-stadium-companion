@@ -7,7 +7,7 @@ router = APIRouter(prefix="/api/crowd", tags=["crowd"])
 
 
 @router.get("/status", response_model=CrowdStatusResponse)
-async def get_crowd_status():
+async def get_crowd_status(stadium_id: str = "stadium_metlife"):
     """
     Returns live crowd density levels and congestion rates per zone.
     """
@@ -34,5 +34,7 @@ async def get_crowd_status():
         )
 
     return CrowdStatusResponse(
-        zones=zones, timestamp=crowd_data.get("timestamp", "2026-07-07T20:30:56Z")
+        zones=zones, 
+        timestamp=crowd_data.get("timestamp", "2026-07-07T20:30:56Z"),
+        stadium_id=stadium_id
     )
