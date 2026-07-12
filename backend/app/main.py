@@ -180,6 +180,15 @@ async def concurrent_connections_handler(request: Request, exc: ConcurrentConnec
     return JSONResponse(status_code=429, content={"detail": exc.message})
 
 
+@app.get("/")
+async def root():
+    return {
+        "status": "healthy",
+        "message": "FIFA World Cup 2026 Stadium Companion API is fully operational.",
+        "docs": "/docs"
+    }
+
+
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": time.time()}

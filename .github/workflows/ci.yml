@@ -27,7 +27,7 @@ jobs:
       - name: Audit dependencies for security vulnerabilities
         run: |
           cd backend
-          pip-audit
+          python -m pip_audit
 
       - name: Lint with black & ruff
         run: |

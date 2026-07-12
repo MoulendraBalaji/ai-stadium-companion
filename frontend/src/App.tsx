@@ -1,5 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode, useState, useRef, useEffect } from 'react';
-import { Map, Shield, Bus, Sun, Moon } from 'lucide-react';
+import { Map, Shield, Bus, Sun, Moon, Eye } from 'lucide-react';
 import { ChatAssistant } from './components/ChatAssistant';
 import { MapView } from './components/MapView';
 import { OpsDashboard } from './components/OpsDashboard';
@@ -69,6 +69,7 @@ const tabs: { id: TabId; label: string; icon: React.ElementType }[] = [
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>('fan');
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [highContrast, setHighContrast] = useState(false);
   const [routeIntent, setRouteIntent] = useState<string | null>(null);
   const [transitOrigin, setTransitOrigin] = useState('Plaza Fan Zone');
   const [transitData, setTransitData] = useState<TransitResponse | null>(null);
@@ -111,7 +112,9 @@ export const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <div data-theme={isDarkMode ? 'dark' : 'light'} className={`h-screen flex flex-col bg-canvas text-ink selection:bg-primary/30 selection:text-white overflow-hidden`}>
+      <div data-theme={isDarkMode ? 'dark' : 'light'} className={`h-screen flex flex-col bg-canvas text-ink selection:bg-primary/30 selection:text-white overflow-hidden ${
+        highContrast ? 'high-contrast' : ''
+      }`}>
         <a href="#main-content" className="skip-link">
           Skip to main content
         </a>
@@ -165,6 +168,18 @@ export const App: React.FC = () => {
                 className="p-2.5 rounded-lg border-1 border-hairline hover:border-primary/50 hover:text-primary text-mute transition-all duration-300 flex items-center justify-center bg-canvas-soft hover:bg-canvas-elevated active:scale-95"
               >
                 {isDarkMode ? <Sun size={15} /> : <Moon size={15} />}
+              </button>
+
+              <button
+                onClick={() => setHighContrast(!highContrast)}
+                type="button"
+                aria-label={highContrast ? 'Disable high contrast theme' : 'Enable high contrast theme'}
+                className={`p-2.5 rounded-lg border-1 border-hairline hover:border-primary/50 hover:text-primary transition-all duration-300 flex items-center justify-center bg-canvas-soft hover:bg-canvas-elevated active:scale-95 ${
+                  highContrast ? 'border-primary text-primary' : 'text-mute'
+                }`}
+                title={highContrast ? 'Disable high contrast' : 'Enable high contrast'}
+              >
+                <Eye size={15} />
               </button>
             </div>
           </div>
