@@ -83,7 +83,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "max-age=63072000; includeSubDomains; preload"
         )
         response.headers["Content-Security-Policy"] = (
-            "default-src 'none'; frame-ancestors 'none';"
+            "default-src 'self'; frame-ancestors 'none'"
         )
         return response
 
@@ -104,7 +104,7 @@ if not allow_origins or settings.ENVIRONMENT == "development":
     )
 
 allow_origins = list(set(allow_origins))
-allow_origin_regex = r"https://.*\.vercel\.app"
+allow_origin_regex = r"https://.*\.(vercel\.app|railway\.app|railway\.internal)"
 
 app.add_middleware(
     CORSMiddleware,

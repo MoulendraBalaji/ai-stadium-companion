@@ -1,3 +1,4 @@
+import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -8,7 +9,11 @@ class Settings(BaseSettings):
     RATE_LIMIT_TOKENS: int = 100
     RATE_LIMIT_REFILL_RATE: float = 1.0  # tokens per second
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(
+        env_file=os.path.join(os.path.dirname(__file__), "..", ".env"),
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
     @property
     def cors_origins_list(self) -> list[str]:
