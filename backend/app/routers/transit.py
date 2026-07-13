@@ -38,7 +38,7 @@ async def get_transit_suggestions(
     origin: str = Query(
         "Downtown Fan Zone", description="Origin location to calculate route from"
     ),
-    stadium_id: str = "stadium_metlife"
+    stadium_id: str = "stadium_metlife",
 ):
     """
     Returns eco-friendly, low-emission transit suggestions from a simulated origin.
@@ -92,7 +92,9 @@ async def get_transit_suggestions(
                     co2_grams=co2,
                     co2_saved=saved,
                     accessibility_features=opt.get("accessibility_features", []),
-                    recommendation_reason=opt.get("recommendation_reason", "Green option.")
+                    recommendation_reason=opt.get(
+                        "recommendation_reason", "Green option."
+                    ),
                 )
             )
 
@@ -104,7 +106,7 @@ async def get_transit_suggestions(
                 "sustainability_tip",
                 "Avoid traffic and reduce emissions by using the electric shuttle network.",
             ),
-            stadium_id=stadium_id
+            stadium_id=stadium_id,
         )
     except Exception as e:
         logger.error(f"Error generating transit suggestions: {e}")
@@ -142,5 +144,5 @@ async def get_transit_suggestions(
                 ),
             ],
             sustainability_tip="Show your digital match ticket for free passage on all regional electric shuttles!",
-            stadium_id=stadium_id
+            stadium_id=stadium_id,
         )

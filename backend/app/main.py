@@ -79,8 +79,12 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
-        response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none';"
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=63072000; includeSubDomains; preload"
+        )
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'none'; frame-ancestors 'none';"
+        )
         return response
 
 
@@ -90,12 +94,14 @@ app.add_middleware(SecurityHeadersMiddleware)
 # CORS configuration
 allow_origins = [origin for origin in settings.cors_origins_list if origin != "*"]
 if not allow_origins or settings.ENVIRONMENT == "development":
-    allow_origins.extend([
-        "http://localhost:5234",
-        "http://127.0.0.1:5234",
-        "http://localhost:5173",
-        "http://localhost:3000",
-    ])
+    allow_origins.extend(
+        [
+            "http://localhost:5234",
+            "http://127.0.0.1:5234",
+            "http://localhost:5173",
+            "http://localhost:3000",
+        ]
+    )
 
 allow_origins = list(set(allow_origins))
 allow_origin_regex = r"https://.*\.vercel\.app"
@@ -176,7 +182,9 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceededError):
 
 
 @app.exception_handler(ConcurrentConnectionsExceededError)
-async def concurrent_connections_handler(request: Request, exc: ConcurrentConnectionsExceededError):
+async def concurrent_connections_handler(
+    request: Request, exc: ConcurrentConnectionsExceededError
+):
     return JSONResponse(status_code=429, content={"detail": exc.message})
 
 
@@ -185,7 +193,7 @@ async def root():
     return {
         "status": "healthy",
         "message": "FIFA World Cup 2026 Stadium Companion API is fully operational.",
-        "docs": "/docs"
+        "docs": "/docs",
     }
 
 

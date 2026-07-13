@@ -8,8 +8,8 @@ interface VoiceInputProps {
 }
 
 interface SpeechWindow extends Window {
-  SpeechRecognition?: any;
-  webkitSpeechRecognition?: any;
+  SpeechRecognition?: unknown;
+  webkitSpeechRecognition?: unknown;
 }
 
 export const VoiceInput: React.FC<VoiceInputProps> = ({
@@ -21,17 +21,29 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({
   const [speechEnabled, setSpeechEnabled] = useState(false);
   const [supportMessage, setSupportMessage] = useState<string | null>(null);
 
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<unknown>(null);
   const synthesisRef = useRef<SpeechSynthesis | null>(null);
 
   useEffect(() => {
     const win = window as SpeechWindow;
-    const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
+    const SpeechRecognitionConstructor = win.SpeechRecognition || win.webkitSpeechRecognition;
 
-    if (!SpeechRecognition) {
-      setSupportMessage('Web Speech Recognition API not supported in this browser.');
+    if (!SpeechRecognitionConstructor) {
+      setSupportMessage('Speech Recognition not supported in this browser.');
       return;
     }
+
+    const SpeechRecognition = SpeechRecognitionConstructor as new () => {
+      continuous: boolean;
+      interimResults: boolean;
+      lang: string;
+      onstart: () => void;
+      onresult: (event: unknown) => void;
+      onerror: (event: unknown) => void;
+      onend: () => void;
+      start: () => void;
+      stop: () => void;
+    };
 
     const recognition = new SpeechRecognition();
     recognition.continuous = false;
@@ -42,15 +54,15 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({
       setIsListening(true);
     };
 
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
+    recognition.onresult = (event: unknown) => {
+      const e = event as { results: Array<Array<{ transcript: string }>> };
+      const transcript = e.results[0][0].transcript;
       if (transcript) {
         onTranscript(transcript);
       }
     };
 
-    recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
+    recognition.onerror = () => {
       setIsListening(false);
     };
 
@@ -70,12 +82,10 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({
   useEffect(() => {
     if (speechEnabled && latestResponse && synthesisRef.current) {
       synthesisRef.current.cancel();
-
       const cleanText = latestResponse
         .replace(/[*#_`]/g, '')
         .replace(/\[.*?\]\(.*?\)/g, '')
         .trim();
-
       if (cleanText) {
         const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = 'en-US';
@@ -88,15 +98,15 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({
 
   const toggleListening = () => {
     if (!recognitionRef.current) return;
-
+    const rec = recognitionRef.current as { stop: () => void; start: () => void };
     if (isListening) {
-      recognitionRef.current.stop();
+      rec.stop();
     } else {
       if (synthesisRef.current) {
         synthesisRef.current.cancel();
       }
       try {
-        recognitionRef.current.start();
+        rec.start();
       } catch (err) {
         console.error('Failed to start speech recognition:', err);
       }
@@ -112,48 +122,54 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({
   };
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div className={`flex items-center gap-1.5 ${className}`}>
       <button
         onClick={toggleListening}
         type="button"
-        aria-label={isListening ? 'Stop voice recording' : 'Start voice recording'}
-        title="Speak your query"
+        aria-label={isListening ? 'Stop recording' : 'Start recording'}
+        title="Voice input"
         disabled={!!supportMessage}
-        className={`p-3 rounded-xl border-1 transition-all duration-300 flex items-center justify-center active:scale-90 ${
-          isListening
-            ? 'bg-red-500/10 border-red-500/30 text-red-400 shadow-lg shadow-red-500/10'
-            : 'bg-canvas border-hairline hover:border-primary/30 text-mute hover:text-primary hover:bg-canvas-elevated disabled:opacity-40 disabled:cursor-not-allowed'
-        }`}
+        className="p-2.5 rounded-xl transition-all duration-300 flex items-center justify-center active:scale-90"
+        style={{
+          background: isListening ? 'rgba(239, 68, 68, 0.1)' : 'var(--color-surface)',
+          border: `1px solid ${isListening ? 'rgba(239, 68, 68, 0.3)' : 'var(--color-border-subtle)'}`,
+          color: isListening ? '#f87171' : 'var(--color-text-muted)',
+          opacity: supportMessage ? 0.4 : 1,
+          cursor: supportMessage ? 'not-allowed' : 'pointer',
+        }}
       >
         {isListening ? (
           <span className="relative flex items-center justify-center">
             <span className="absolute w-full h-full rounded-full bg-red-400/20 animate-ping" />
-            <MicOff size={18} />
+            <MicOff size={16} />
           </span>
         ) : (
-          <Mic size={18} />
+          <Mic size={16} />
         )}
       </button>
 
       <button
         onClick={toggleSpeechPlayback}
         type="button"
-        aria-label={speechEnabled ? 'Disable text-to-speech audio reader' : 'Enable text-to-speech audio reader'}
-        title="Toggle audio readback"
+        aria-label={speechEnabled ? 'Disable audio readback' : 'Enable audio readback'}
+        title="Text-to-speech"
         disabled={!synthesisRef.current}
-        className={`p-3 rounded-xl border-1 transition-all duration-300 flex items-center justify-center active:scale-90 ${
-          speechEnabled
-            ? 'bg-primary/10 border-primary/30 text-primary shadow-lg shadow-primary/10'
-            : 'bg-canvas border-hairline hover:border-primary/30 text-mute hover:text-primary hover:bg-canvas-elevated disabled:opacity-40 disabled:cursor-not-allowed'
-        }`}
+        className="p-2.5 rounded-xl transition-all duration-300 flex items-center justify-center active:scale-90"
+        style={{
+          background: speechEnabled ? 'rgba(59, 130, 246, 0.1)' : 'var(--color-surface)',
+          border: `1px solid ${speechEnabled ? 'rgba(59, 130, 246, 0.3)' : 'var(--color-border-subtle)'}`,
+          color: speechEnabled ? 'var(--color-accent)' : 'var(--color-text-muted)',
+          opacity: !synthesisRef.current ? 0.4 : 1,
+          cursor: !synthesisRef.current ? 'not-allowed' : 'pointer',
+        }}
       >
-        {speechEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+        {speechEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
       </button>
 
       <div className="sr-only" aria-live="polite">
         {isListening && 'Listening for voice input...'}
-        {speechEnabled && 'Text to speech readback enabled.'}
-        {supportMessage && `Speech input unavailable: ${supportMessage}`}
+        {speechEnabled && 'Text-to-speech enabled.'}
+        {supportMessage && `Speech unavailable: ${supportMessage}`}
       </div>
     </div>
   );

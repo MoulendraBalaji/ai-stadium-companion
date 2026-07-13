@@ -10,7 +10,6 @@ export const OpsDashboard: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [completedActions, setCompletedActions] = useState<Record<number, boolean>>({});
 
-  // Incident form states
   const [repRole, setRepRole] = useState('Volunteer');
   const [incLoc, setIncLoc] = useState('gate_c');
   const [incType, setIncType] = useState('Spill');
@@ -35,9 +34,9 @@ export const OpsDashboard: React.FC = () => {
       await fetchTelemetry();
       await generateAISummary();
       setTimeout(() => setReportSuccess(false), 4000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setErrorMsg(err.message || 'Failed to submit staff incident report.');
+      setErrorMsg(err instanceof Error ? err.message : 'Failed to submit report.');
     } finally {
       setIsReporting(false);
     }
@@ -48,9 +47,9 @@ export const OpsDashboard: React.FC = () => {
     try {
       const res = await api.getCrowdStatus();
       setZones(res.zones);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setErrorMsg('Failed to load live telemetry feed.');
+      setErrorMsg('Failed to load live telemetry.');
     } finally {
       setIsLoadingFeed(false);
     }
@@ -63,106 +62,88 @@ export const OpsDashboard: React.FC = () => {
       const res = await api.getOpsSummary();
       setOpsData(res);
       setCompletedActions({});
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setErrorMsg('Failed to generate AI operational report.');
+      setErrorMsg('Failed to generate AI report.');
     } finally {
       setIsLoadingSummary(false);
     }
   };
 
   const toggleAction = (idx: number) => {
-    setCompletedActions((prev) => ({
-      ...prev,
-      [idx]: !prev[idx]
-    }));
+    setCompletedActions((prev) => ({ ...prev, [idx]: !prev[idx] }));
   };
 
-  const getStatusStyle = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'Critical':
-        return 'bg-red-500/10 text-red-400 border-red-500/20';
-      case 'Crowded':
-        return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
-      default:
-        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+      case 'Critical': return <span className="badge badge-danger">{status}</span>;
+      case 'Crowded': return <span className="badge badge-warn">{status}</span>;
+      default: return <span className="badge badge-success">{status}</span>;
     }
   };
 
   return (
-    <div className="space-y-6 font-sans text-sm text-ink pb-6">
-      <div className="flex items-center gap-3 mb-2">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-deep flex items-center justify-center shadow-lg shadow-primary/10">
-          <Activity size={18} className="text-canvas" />
+    <div className="space-y-6 pb-6">
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent to-accent-dark flex items-center justify-center shadow-glow-sm">
+          <Activity size={20} className="text-white" />
         </div>
         <div>
-          <h2 className="text-lg font-bold font-tech uppercase tracking-wider text-ink-strong">Operations Dashboard</h2>
-          <p className="text-xs text-mute font-sans">Live stadium telemetry & AI recommendations</p>
+          <h2 className="text-xl font-bold font-display" style={{ color: 'var(--color-text-strong)' }}>
+            Command Center
+          </h2>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
+            Live stadium telemetry & AI tactical recommendations
+          </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="bg-gradient-to-br from-canvas-soft to-canvas border-1 border-hairline p-5 rounded-xl card-hover">
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="text-xs text-mute uppercase font-semibold font-display tracking-wider">Match Attendance</div>
-              <div className="text-3xl font-bold font-mono text-ink-strong mt-1">68,420</div>
-              <div className="text-[11px] text-primary flex items-center gap-1 mt-1.5 font-sans">
-                <TrendingUp size={12} /> 94.6% capacity
-              </div>
-            </div>
-            <div className="p-3 rounded-lg bg-primary/10 border-1 border-primary/20 text-primary">
-              <Users size={20} />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-canvas-soft to-canvas border-1 border-hairline p-5 rounded-xl card-hover">
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="text-xs text-mute uppercase font-semibold font-display tracking-wider">Peak Gate Wait</div>
-              <div className="text-3xl font-bold font-mono text-ink-strong mt-1">25<span className="text-lg text-mute">min</span></div>
-              <div className="text-[11px] text-red-400 mt-1.5 flex items-center gap-1 font-sans">
-                <Clock size={12} /> Gate C - East Entrance
-              </div>
-            </div>
-            <div className="p-3 rounded-lg bg-red-500/10 border-1 border-red-500/20 text-red-400">
-              <Clock size={20} />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-canvas-soft to-canvas border-1 border-hairline p-5 rounded-xl card-hover">
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="text-xs text-mute uppercase font-semibold font-display tracking-wider">Active Staff</div>
-              <div className="text-3xl font-bold font-mono text-ink-strong mt-1">320</div>
-              <div className="text-[11px] text-primary mt-1.5 flex items-center gap-1 font-sans">
-                <Users size={12} /> 85 volunteers on route
-              </div>
-            </div>
-            <div className="p-3 rounded-lg bg-primary/10 border-1 border-primary/20 text-primary">
-              <ShieldAlert size={20} />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="flex flex-col gap-6">
-          <div className="bg-canvas-soft border-1 border-hairline rounded-xl p-5 flex flex-col shadow-lg">
-            <div className="flex items-center justify-between pb-4 border-b border-hairline">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 border-1 border-primary/20 flex items-center justify-center">
-                  <Layers size={15} className="text-primary" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[
+          { label: 'Match Attendance', value: '68,420', sub: '94.6% capacity', icon: Users, color: 'accent' },
+          { label: 'Peak Gate Wait', value: '25', unit: 'min', sub: 'Gate C — East', icon: Clock, color: 'danger' },
+          { label: 'Active Staff', value: '320', sub: '85 volunteers deployed', icon: ShieldAlert, color: 'accent' },
+        ].map((stat, i) => (
+          <div key={i} className="card p-5 group" style={{ animationDelay: `${i * 80}ms` }}>
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="stat-label text-[10px]">{stat.label}</div>
+                <div className="stat-value mt-2">
+                  {stat.value}{stat.unit && <span className="text-base font-normal" style={{ color: 'var(--color-text-muted)' }}>{stat.unit}</span>}
                 </div>
-                <h2 className="text-sm font-bold font-tech uppercase tracking-wider text-ink-strong">Live Telemetry</h2>
+                <div className="text-xs mt-2 flex items-center gap-1.5" style={{ color: stat.color === 'danger' ? '#f87171' : 'var(--color-accent)' }}>
+                  {stat.color === 'danger' ? <Clock size={12} /> : <TrendingUp size={12} />}
+                  {stat.sub}
+                </div>
+              </div>
+              <div className="p-3 rounded-xl" style={{
+                background: stat.color === 'danger' ? 'rgba(239, 68, 68, 0.08)' : 'rgba(59, 130, 246, 0.08)',
+                border: `1px solid ${stat.color === 'danger' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(59, 130, 246, 0.15)'}`,
+              }}>
+                <stat.icon size={20} style={{ color: stat.color === 'danger' ? '#f87171' : 'var(--color-accent)' }} />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div className="flex flex-col gap-5">
+          <div className="card p-5 flex flex-col">
+            <div className="flex items-center justify-between pb-4" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center">
+                  <Layers size={15} className="text-accent" />
+                </div>
+                <h2 className="text-sm font-bold font-display uppercase tracking-wider" style={{ color: 'var(--color-text-strong)' }}>
+                  Live Telemetry
+                </h2>
               </div>
               <button
                 onClick={fetchTelemetry}
                 disabled={isLoadingFeed}
-                className="p-2 rounded-lg border-1 border-hairline text-mute hover:text-primary hover:border-primary/30 transition-all duration-300 bg-canvas hover:bg-canvas-elevated active:scale-95"
-                aria-label="Refresh sensor feed"
+                className="p-2 rounded-xl transition-all duration-300 hover:bg-white/5"
+                style={{ color: 'var(--color-text-muted)', border: '1px solid var(--color-border-subtle)' }}
                 title="Refresh feed"
               >
                 <RefreshCw size={13} className={isLoadingFeed ? 'animate-spin' : ''} />
@@ -173,132 +154,135 @@ export const OpsDashboard: React.FC = () => {
               {zones.length === 0 && isLoadingFeed && (
                 <div className="space-y-3">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-[72px] rounded-lg shimmer-loading" />
+                    <div key={i} className="h-[72px] rounded-xl shimmer" />
                   ))}
                 </div>
               )}
               {zones.map((zone, idx) => (
                 <div
                   key={zone.zone_id}
-                  className="p-4 bg-canvas border-1 border-hairline rounded-lg flex items-center justify-between card-hover animate-fade-in-up"
-                  style={{ animationDelay: `${idx * 60}ms` }}
+                  className="p-4 rounded-xl flex items-center justify-between animate-fade-in-up"
+                  style={{
+                    background: 'var(--color-surface)',
+                    border: '1px solid var(--color-border-subtle)',
+                    animationDelay: `${idx * 60}ms`
+                  }}
                 >
                   <div className="space-y-1">
-                    <div className="font-bold text-ink-strong font-display">{zone.zone_name}</div>
-                    <div className="text-[10px] text-mute font-mono">ID: {zone.zone_id} &middot; Score: {zone.density_score}</div>
+                    <div className="font-bold text-sm font-display" style={{ color: 'var(--color-text-strong)' }}>{zone.zone_name}</div>
+                    <div className="text-[10px] font-mono" style={{ color: 'var(--color-text-muted)' }}>
+                      {zone.zone_id} · Score: {zone.density_score}
+                    </div>
                   </div>
                   <div className="flex items-center gap-5">
                     <div className="text-right">
-                      <div className="text-[10px] text-mute font-sans uppercase tracking-wider">Wait</div>
-                      <div className="font-bold font-mono text-ink-strong">{zone.queue_time_minutes}m</div>
+                      <div className="stat-label text-[9px]">Wait</div>
+                      <div className="font-bold font-mono text-sm" style={{ color: 'var(--color-text-strong)' }}>
+                        {zone.queue_time_minutes}m
+                      </div>
                     </div>
-                    <div className="text-right min-w-[100px]">
-                      <div className="text-[10px] text-mute font-sans uppercase tracking-wider">Density</div>
-                      <span className={`text-[10px] font-bold font-mono py-1 px-2 rounded-full inline-block mt-0.5 border-1 ${getStatusStyle(zone.status)}`}>
-                        {zone.status}: {zone.occupancy_percentage}%
-                      </span>
+                    <div className="text-right min-w-[90px]">
+                      <div className="stat-label text-[9px]">Density</div>
+                      <div className="mt-0.5">{getStatusBadge(zone.status)}</div>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="mt-4 text-[10px] text-mute italic font-sans border-t border-hairline pt-3">
-              Values are simulated live IoT sensor telemetry.
+            <div className="mt-4 text-[10px] italic pt-3" style={{ color: 'var(--color-text-muted)', borderTop: '1px solid var(--color-border-subtle)' }}>
+              Simulated live IoT sensor telemetry.
             </div>
           </div>
 
-          {/* Volunteer Incident Report Form */}
-          <div className="bg-canvas-soft border-1 border-hairline rounded-xl p-5 flex flex-col shadow-lg">
-            <div className="flex items-center gap-2.5 pb-4 border-b border-hairline mb-4">
-              <div className="w-8 h-8 rounded-lg bg-red-500/10 border-1 border-red-500/20 flex items-center justify-center">
+          <div className="card p-5 flex flex-col">
+            <div className="flex items-center gap-3 pb-4 mb-4" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+              <div className="w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
                 <ShieldAlert size={15} className="text-red-400" />
               </div>
-              <h2 className="text-sm font-bold font-tech uppercase tracking-wider text-ink-strong">Staff Incident Report</h2>
+              <h2 className="text-sm font-bold font-display uppercase tracking-wider" style={{ color: 'var(--color-text-strong)' }}>
+                Incident Report
+              </h2>
             </div>
 
-            <form onSubmit={handleIncidentSubmit} className="space-y-4 font-sans text-xs">
+            <form onSubmit={handleIncidentSubmit} className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[10px] text-mute uppercase font-semibold mb-1">Your Role</label>
-                  <select
-                    value={repRole}
-                    onChange={(e) => setRepRole(e.target.value)}
-                    className="w-full bg-canvas text-ink border-1 border-hairline rounded-lg p-2 focus:border-red-400 focus:outline-none"
-                  >
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Role</label>
+                  <select value={repRole} onChange={(e) => setRepRole(e.target.value)} className="input-field text-xs">
                     <option value="Volunteer">Volunteer</option>
                     <option value="Organizer">Organizer</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-[10px] text-mute uppercase font-semibold mb-1">Location</label>
-                  <select
-                    value={incLoc}
-                    onChange={(e) => setIncLoc(e.target.value)}
-                    className="w-full bg-canvas text-ink border-1 border-hairline rounded-lg p-2 focus:border-red-400 focus:outline-none"
-                  >
-                    <option value="gate_c">Gate C - East Entrance</option>
-                    <option value="gate_a">Gate A - North Entrance</option>
-                    <option value="gate_b">Gate B - Main Gate</option>
-                    <option value="sec_114">Section 114 Corridor</option>
-                    <option value="sec_112">Section 112 Lobby</option>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Location</label>
+                  <select value={incLoc} onChange={(e) => setIncLoc(e.target.value)} className="input-field text-xs">
+                    <option value="gate_c">Gate C — East</option>
+                    <option value="gate_a">Gate A — North</option>
+                    <option value="gate_b">Gate B — South</option>
+                    <option value="sec_114">Section 114</option>
+                    <option value="sec_112">Section 112</option>
                     <option value="concessions_east">Concessions East</option>
                   </select>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[10px] text-mute uppercase font-semibold mb-1">Incident Type</label>
-                <select
-                  value={incType}
-                  onChange={(e) => setIncType(e.target.value)}
-                  className="w-full bg-canvas text-ink border-1 border-hairline rounded-lg p-2 focus:border-red-400 focus:outline-none"
-                >
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Incident Type</label>
+                <select value={incType} onChange={(e) => setIncType(e.target.value)} className="input-field text-xs">
                   <option value="Spill">Spill / Slip Hazard</option>
                   <option value="Crowd Surge">Crowd Surge / Bottleneck</option>
-                  <option value="Medical">Medical Assistance Needed</option>
+                  <option value="Medical">Medical Assistance</option>
                   <option value="Security Alert">Security Incident</option>
-                  <option value="Gate Equipment Failure">Turnstile / Gate Malfunction</option>
+                  <option value="Gate Equipment Failure">Turnstile Malfunction</option>
                 </select>
               </div>
 
-              <div>
-                <label className="block text-[10px] text-mute uppercase font-semibold mb-1">Details & Description</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Description</label>
                 <textarea
                   value={incDetails}
                   onChange={(e) => setIncDetails(e.target.value)}
                   rows={3}
-                  placeholder="Describe the issue concisely..."
-                  className="w-full bg-canvas text-ink border-1 border-hairline rounded-lg p-2 focus:border-red-400 focus:outline-none"
+                  placeholder="Describe the issue..."
+                  className="input-field text-xs resize-none"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isReporting || !incDetails.trim()}
-                className="w-full py-2.5 px-4 rounded-lg bg-red-500 hover:bg-red-600 disabled:opacity-40 text-canvas font-semibold transition-all duration-300 active:scale-95 flex items-center justify-center gap-2"
+                className="w-full py-2.5 px-4 rounded-xl font-semibold transition-all duration-300 active:scale-[0.98] text-white text-xs disabled:opacity-40"
+                style={{
+                  background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                  boxShadow: '0 4px 16px rgba(239, 68, 68, 0.3)'
+                }}
               >
-                {isReporting ? 'Logging incident...' : 'Submit Operational Report'}
+                {isReporting ? 'Logging...' : 'Submit Report'}
               </button>
               {reportSuccess && (
-                <p className="text-[10px] text-emerald-400 font-medium text-center">Report logged! Updating AI operational report...</p>
+                <p className="text-[10px] text-center font-medium" style={{ color: '#34d399' }}>
+                  Report logged successfully. Updating AI analysis...
+                </p>
               )}
             </form>
           </div>
         </div>
 
-        <div className="bg-canvas-soft border-1 border-hairline rounded-xl p-5 flex flex-col shadow-lg">
-          <div className="flex items-center justify-between pb-4 border-b border-hairline">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border-1 border-primary/20 flex items-center justify-center">
-                <ShieldAlert size={15} className="text-primary" />
+        <div className="card p-5 flex flex-col">
+          <div className="flex items-center justify-between pb-4" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 border border-accent/20 flex items-center justify-center">
+                <ShieldAlert size={15} className="text-accent" />
               </div>
-              <h2 className="text-sm font-bold font-tech uppercase tracking-wider text-ink-strong">AI Intelligence</h2>
+              <h2 className="text-sm font-bold font-display uppercase tracking-wider" style={{ color: 'var(--color-text-strong)' }}>
+                AI Intelligence
+              </h2>
             </div>
             <button
               onClick={generateAISummary}
               disabled={isLoadingSummary}
-              className="p-2 rounded-lg border-1 border-hairline text-mute hover:text-primary hover:border-primary/30 transition-all duration-300 bg-canvas hover:bg-canvas-elevated active:scale-95"
-              aria-label="Regenerate AI analysis report"
+              className="p-2 rounded-xl transition-all duration-300 hover:bg-white/5"
+              style={{ color: 'var(--color-text-muted)', border: '1px solid var(--color-border-subtle)' }}
               title="Regenerate Report"
             >
               <RefreshCw size={13} className={isLoadingSummary ? 'animate-spin' : ''} />
@@ -306,26 +290,28 @@ export const OpsDashboard: React.FC = () => {
           </div>
 
           {isLoadingSummary && (
-            <div className="flex-1 flex flex-col items-center justify-center py-16 gap-4 text-mute">
-              <div className="w-10 h-10 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
-              <div className="text-xs font-tech text-primary">Analyzing crowd sensors...</div>
-              <div className="w-48 h-1.5 rounded-full bg-hairline overflow-hidden">
-                <div className="h-full rounded-full bg-gradient-to-r from-primary to-primary-deep animate-shimmer" style={{ width: '60%' }} />
+            <div className="flex-1 flex flex-col items-center justify-center py-20 gap-4">
+              <div className="w-12 h-12 rounded-full border-2 border-accent/30 border-t-accent animate-spin" />
+              <div className="text-xs font-tech" style={{ color: 'var(--color-accent)' }}>Analyzing crowd sensors...</div>
+              <div className="w-48 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--color-border-subtle)' }}>
+                <div className="h-full rounded-full bg-gradient-to-r from-accent to-accent-cyan animate-shimmer" style={{ width: '60%' }} />
               </div>
             </div>
           )}
 
           {!isLoadingSummary && opsData && (
-            <div className="mt-4 space-y-4 flex-1 animate-fade-in-up">
-              <div className="p-4 bg-canvas border-1 border-hairline rounded-lg">
-                <div className="text-[10px] font-bold text-primary font-mono uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <div className="mt-4 space-y-5 flex-1 animate-fade-in-up">
+              <div className="p-4 rounded-xl" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)' }}>
+                <div className="text-[10px] font-bold uppercase tracking-wider mb-2.5 flex items-center gap-1.5 font-mono" style={{ color: 'var(--color-accent)' }}>
                   <Activity size={12} /> Summary
                 </div>
-                <p className="text-xs text-ink leading-relaxed whitespace-pre-wrap font-sans">{opsData.summary}</p>
+                <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--color-text)' }}>
+                  {opsData.summary}
+                </p>
               </div>
 
-              <div className="space-y-2">
-                <div className="text-[10px] font-bold text-primary font-mono uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <div className="space-y-2.5">
+                <div className="text-[10px] font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5 font-mono" style={{ color: 'var(--color-accent)' }}>
                   <CheckCircle2 size={12} /> Recommended Actions
                 </div>
                 {opsData.recommended_actions.map((action, idx) => {
@@ -343,19 +329,27 @@ export const OpsDashboard: React.FC = () => {
                       tabIndex={0}
                       role="checkbox"
                       aria-checked={done}
-                      className={`p-3.5 rounded-lg border-1 cursor-pointer transition-all duration-300 flex items-start gap-3 select-none animate-fade-in-up ${
-                        done
-                          ? 'bg-canvas border-hairline/50 opacity-60'
-                          : 'bg-canvas border-hairline hover:border-primary/30 hover:bg-canvas-elevated'
-                      }`}
-                      style={{ animationDelay: `${idx * 80}ms` }}
+                      className="p-4 rounded-xl cursor-pointer transition-all duration-300 flex items-start gap-3 select-none animate-fade-in-up"
+                      style={{
+                        background: 'var(--color-surface)',
+                        border: `1px solid ${done ? 'var(--color-border-subtle)' : 'var(--color-border-subtle)'}`,
+                        opacity: done ? 0.5 : 1,
+                        animationDelay: `${idx * 80}ms`
+                      }}
                     >
-                      <div className={`mt-0.5 w-5 h-5 rounded-md border-1 flex items-center justify-center transition-all duration-300 shrink-0 ${
-                        done ? 'bg-primary border-primary text-canvas' : 'border-hairline'
-                      }`}>
+                      <div className="mt-0.5 w-5 h-5 rounded-lg flex items-center justify-center transition-all duration-300 shrink-0" style={{
+                        background: done ? 'var(--color-accent)' : 'transparent',
+                        border: `1.5px solid ${done ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                        color: done ? 'white' : 'transparent'
+                      }}>
                         {done && <CheckCircle2 size={13} />}
                       </div>
-                      <span className={`text-xs font-sans leading-relaxed ${done ? 'line-through text-mute' : 'text-ink-strong'}`}>{action}</span>
+                      <span className="text-sm leading-relaxed" style={{
+                        color: done ? 'var(--color-text-muted)' : 'var(--color-text-strong)',
+                        textDecoration: done ? 'line-through' : 'none'
+                      }}>
+                        {action}
+                      </span>
                     </div>
                   );
                 })}
@@ -364,14 +358,18 @@ export const OpsDashboard: React.FC = () => {
           )}
 
           {errorMsg && !isLoadingSummary && (
-            <div className="mt-4 p-3.5 bg-red-950/20 border-1 border-red-500/20 text-red-400 rounded-lg text-xs flex gap-2.5 animate-fade-in-up">
+            <div className="mt-4 p-4 rounded-xl text-xs flex gap-3 animate-fade-in-up" style={{
+              background: 'rgba(239, 68, 68, 0.05)',
+              border: '1px solid rgba(239, 68, 68, 0.15)',
+              color: '#f87171'
+            }}>
               <ShieldAlert size={14} className="shrink-0 mt-0.5" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {opsData && (
-            <div className="mt-4 text-[10px] text-mute font-mono border-t border-hairline pt-3 text-right">
+            <div className="mt-4 text-[10px] font-mono pt-3 text-right" style={{ color: 'var(--color-text-muted)', borderTop: '1px solid var(--color-border-subtle)' }}>
               Generated: {new Date(opsData.timestamp).toLocaleTimeString()}
             </div>
           )}

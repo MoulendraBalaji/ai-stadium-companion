@@ -3,12 +3,11 @@ import json
 import os
 from typing import Any
 
+from app.exceptions import NodeNotFoundError, RouteNotFoundError
+
 MAP_PATH = os.path.join(
     os.path.dirname(os.path.dirname(__file__)), "data", "stadium_map.json"
 )
-
-
-from app.exceptions import NodeNotFoundError, RouteNotFoundError
 
 
 def load_stadium_map() -> dict[str, Any]:

@@ -17,7 +17,7 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({ onRouteRequested }
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
-      content: 'Hello! I am your AI Stadium Companion. Ask me for directions (e.g. "nearest accessible restroom near section 114"), transit tips, or crowd alerts. How can I help you today?'
+      content: 'Welcome to StadiumOS AI. Ask me for directions, transit info, crowd alerts, or any stadium question. How can I assist you?'
     }
   ]);
   const [inputValue, setInputValue] = useState('');
@@ -58,7 +58,6 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({ onRouteRequested }
     }
 
     setIsStreaming(true);
-
     setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
 
     await api.streamChat(
@@ -79,7 +78,7 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({ onRouteRequested }
       },
       (err) => {
         console.error(err);
-        setErrorMsg('Failed to fetch stream. The stadium network may be congested.');
+        setErrorMsg('Connection lost. The stadium network may be congested.');
         setIsStreaming(false);
         setMessages((prev) => {
           const next = [...prev];
@@ -107,7 +106,7 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({ onRouteRequested }
     setMessages([
       {
         role: 'assistant',
-        content: 'Chat history cleared. How can I assist you at the stadium?'
+        content: 'Chat cleared. How can I assist you at the stadium?'
       }
     ]);
     setErrorMsg(null);
@@ -123,15 +122,22 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({ onRouteRequested }
   };
 
   return (
-    <div className="flex flex-col h-full bg-canvas-soft border-1 border-hairline rounded-xl overflow-hidden shadow-2xl">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-hairline bg-canvas/50">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-deep flex items-center justify-center shadow-lg shadow-primary/10">
-            <Sparkles size={15} className="text-canvas" />
+    <div className="card flex flex-col h-full overflow-hidden" style={{ minHeight: 'calc(100vh - 7rem)' }}>
+      <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent to-accent-dark flex items-center justify-center shadow-glow-sm">
+            <Sparkles size={16} className="text-white" />
           </div>
           <div>
-            <h2 className="text-sm font-bold tracking-wider text-ink-strong font-display">AI Assistant</h2>
-            <span className="text-[10px] text-primary font-mono">{isStreaming ? 'Responding...' : 'Online'}</span>
+            <h2 className="text-sm font-bold font-display" style={{ color: 'var(--color-text-strong)' }}>
+              AI Companion
+            </h2>
+            <span className="text-[10px] font-mono flex items-center gap-1.5">
+              <span className={`w-1.5 h-1.5 rounded-full ${isStreaming ? 'bg-accent animate-pulse' : 'bg-success'}`} />
+              <span style={{ color: isStreaming ? 'var(--color-accent)' : 'var(--color-text-muted)' }}>
+                {isStreaming ? 'Responding...' : 'Online'}
+              </span>
+            </span>
           </div>
         </div>
 
@@ -141,7 +147,7 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({ onRouteRequested }
             id="chat-lang"
             value={selectedLanguage}
             onChange={(e) => setSelectedLanguage(e.target.value)}
-            className="bg-canvas text-xs text-ink border-1 border-hairline rounded-lg py-1.5 px-2.5 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 font-sans transition-all duration-300"
+            className="input-field text-xs py-1.5 px-3 w-auto"
           >
             <option value="">Auto-Detect</option>
             <option value="en">English</option>
@@ -154,7 +160,8 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({ onRouteRequested }
           <button
             onClick={clearChat}
             type="button"
-            className="p-2 rounded-lg border-1 border-hairline text-mute hover:text-primary hover:border-primary/30 transition-all duration-300 bg-canvas hover:bg-canvas-elevated active:scale-95"
+            className="p-2 rounded-xl transition-all duration-300 hover:bg-white/5"
+            style={{ color: 'var(--color-text-muted)', border: '1px solid var(--color-border-subtle)' }}
             title="Clear Chat"
           >
             <Trash2 size={13} />
@@ -163,28 +170,30 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({ onRouteRequested }
       </div>
 
       <div
-        className="flex-1 overflow-y-auto px-5 py-4 space-y-4 font-sans"
+        className="flex-1 overflow-y-auto px-5 py-4 space-y-4"
         aria-live="polite"
         aria-relevant="additions"
       >
         {messages.map((msg, idx) => (
           <div
             key={idx}
-            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-message-in`}
+            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in-up`}
           >
             <div
-              className={`max-w-[88%] rounded-xl p-3.5 leading-relaxed transition-all duration-300 ${
+              className={`max-w-[85%] rounded-2xl px-4 py-3 leading-relaxed transition-all duration-300 ${
                 msg.role === 'user'
-                  ? 'bg-gradient-to-br from-primary to-primary-deep text-canvas shadow-lg shadow-primary/10'
-                  : 'bg-canvas border-1 border-hairline text-ink'
+                  ? 'bg-gradient-to-br from-accent to-accent-dark text-white shadow-glow-sm'
+                  : 'card-elevated'
               }`}
             >
               {msg.role === 'assistant' && (
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-5 h-5 rounded-full bg-gradient-to-br from-primary to-primary-deep flex items-center justify-center">
-                    <Sparkles size={10} className="text-canvas" />
+                  <div className="w-5 h-5 rounded-md bg-gradient-to-br from-accent to-accent-cyan flex items-center justify-center">
+                    <Sparkles size={10} className="text-white" />
                   </div>
-                  <span className="text-[10px] font-semibold text-primary font-display uppercase tracking-wider">Companion</span>
+                  <span className="text-[10px] font-bold font-display uppercase tracking-wider" style={{ color: 'var(--color-accent-light)' }}>
+                    StadiumOS
+                  </span>
                 </div>
               )}
               <div
@@ -193,11 +202,11 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({ onRouteRequested }
                 className={`whitespace-pre-wrap text-sm ${msg.role === 'user' ? 'font-medium' : ''}`}
               >
                 {msg.content || (isStreaming && idx === messages.length - 1 ? (
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-1.5 py-1">
                     {TYPING_DOTS.map((dot, i) => (
                       <span
                         key={i}
-                        className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-dot-pulse"
+                        className="w-1.5 h-1.5 rounded-full bg-accent animate-dot-pulse"
                         style={{ animationDelay: dot.animationDelay }}
                       />
                     ))}
@@ -208,15 +217,18 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({ onRouteRequested }
           </div>
         ))}
         {errorMsg && (
-          <div className="flex items-center gap-2.5 p-3.5 bg-red-950/20 border-1 border-red-500/20 text-red-400 rounded-xl animate-fade-in-up">
-            <AlertCircle size={15} className="shrink-0" />
-            <span className="text-xs font-sans">{errorMsg}</span>
+          <div className="flex items-center gap-3 p-4 rounded-xl animate-fade-in-up" style={{
+            background: 'rgba(239, 68, 68, 0.05)',
+            border: '1px solid rgba(239, 68, 68, 0.15)'
+          }}>
+            <AlertCircle size={16} className="text-red-400 shrink-0" />
+            <span className="text-xs" style={{ color: '#f87171' }}>{errorMsg}</span>
           </div>
         )}
         <div ref={chatEndRef} />
       </div>
 
-      <form onSubmit={handleSubmit} className="p-4 border-t border-hairline bg-canvas/50 flex items-center gap-2.5">
+      <form onSubmit={handleSubmit} className="px-4 py-3 flex items-center gap-3" style={{ borderTop: '1px solid var(--color-border-subtle)' }}>
         <VoiceInput
           onTranscript={handleVoiceTranscript}
           latestResponse={getLatestAssistantReply()}
@@ -232,11 +244,10 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({ onRouteRequested }
             onChange={(e) => setInputValue(e.target.value)}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            placeholder="Ask directions, transit info or support..."
+            placeholder="Ask about directions, transit, or stadium info..."
             disabled={isStreaming}
-            className={`w-full bg-canvas text-ink border-1 rounded-xl py-3 pl-4 pr-4 focus:outline-none placeholder:text-mute text-sm font-sans transition-all duration-300 ${
-              isFocused ? 'border-primary ring-1 ring-primary/20' : 'border-hairline'
-            }`}
+            className="input-field text-sm pr-4"
+            style={isFocused ? { borderColor: 'var(--color-accent)', boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.1)' } : {}}
           />
         </div>
 
@@ -244,7 +255,7 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({ onRouteRequested }
           type="submit"
           disabled={!inputValue.trim() || isStreaming}
           aria-label="Send message"
-          className="p-3 rounded-xl bg-gradient-to-r from-primary to-primary-deep text-canvas font-semibold hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center shadow-lg shadow-primary/10 active:scale-95"
+          className="p-3 rounded-xl bg-gradient-to-br from-accent to-accent-dark text-white font-semibold hover:shadow-glow disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center active:scale-95"
         >
           <Send size={16} />
         </button>

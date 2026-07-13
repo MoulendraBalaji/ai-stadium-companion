@@ -28,7 +28,9 @@ async def chat_endpoint(chat_request: ChatRequest, request: Request):
     # Enforce active connection ceiling per client
     current_conn = active_connections.get(client_ip, 0)
     if current_conn >= MAX_CONCURRENT_SSE:
-        logger.warning(f"Client {client_ip} exceeded maximum concurrent SSE connections.")
+        logger.warning(
+            f"Client {client_ip} exceeded maximum concurrent SSE connections."
+        )
         raise ConcurrentConnectionsExceededError()
 
     history = chat_request.messages
@@ -67,6 +69,8 @@ async def chat_endpoint(chat_request: ChatRequest, request: Request):
             yield f"data: {json.dumps({'chunk': ' [Stream interrupted due to an error] '})}\n\n"
         finally:
             # Deregister connection
-            active_connections[client_ip] = max(0, active_connections.get(client_ip, 1) - 1)
+            active_connections[client_ip] = max(
+                0, active_connections.get(client_ip, 1) - 1
+            )
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")

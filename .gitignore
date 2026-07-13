@@ -5,7 +5,10 @@ __pycache__/
 *.pyd
 .pytest_cache/
 .ruff_cache/
+.coverage
 .env
+.env.*
+!.env.example
 
 # Node / Frontend
 node_modules/
@@ -21,3 +24,6 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Build
+*.tsbuildinfo

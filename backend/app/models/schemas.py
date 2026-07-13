@@ -3,7 +3,9 @@ from pydantic import BaseModel, Field
 
 class RouteRequest(BaseModel):
     current_location: str = Field(
-        ..., max_length=100, description="ID of starting gate or section, e.g., 'gate_a'"
+        ...,
+        max_length=100,
+        description="ID of starting gate or section, e.g., 'gate_a'",
     )
     destination_intent: str = Field(
         ...,
@@ -42,7 +44,9 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     messages: list[ChatMessage] = Field(..., description="Conversational history")
     language: str | None = Field(
-        None, max_length=10, description="Manually specified language code, otherwise autodetect"
+        None,
+        max_length=10,
+        description="Manually specified language code, otherwise autodetect",
     )
     stadium_id: str = Field(
         "stadium_metlife", max_length=100, description="The stadium identifier"
@@ -72,7 +76,9 @@ class OpsSummaryResponse(BaseModel):
 
 
 class TransitRequest(BaseModel):
-    origin: str = Field(..., max_length=500, description="Origin location name, e.g., 'Downtown Hotel'")
+    origin: str = Field(
+        ..., max_length=500, description="Origin location name, e.g., 'Downtown Hotel'"
+    )
     stadium_id: str = Field(
         "stadium_metlife", max_length=100, description="The stadium identifier"
     )
@@ -83,7 +89,9 @@ class TransitOption(BaseModel):
     name: str
     duration_minutes: int
     co2_grams: float
-    co2_saved: float = Field(0.0, description="CO2 saved in grams compared to standard driving")
+    co2_saved: float = Field(
+        0.0, description="CO2 saved in grams compared to standard driving"
+    )
     accessibility_features: list[str]
     recommendation_reason: str
 
@@ -97,10 +105,18 @@ class TransitResponse(BaseModel):
 
 
 class IncidentReport(BaseModel):
-    reporter_role: str = Field(..., max_length=50, description="e.g. 'Volunteer' or 'Organizer'")
-    location_node_id: str = Field(..., max_length=100, description="The node ID where incident occurred")
-    incident_type: str = Field(..., max_length=100, description="e.g. 'Spill', 'Crowd Surge', 'Medical'")
-    details: str = Field(..., max_length=1000, description="Free text details of the incident")
+    reporter_role: str = Field(
+        ..., max_length=50, description="e.g. 'Volunteer' or 'Organizer'"
+    )
+    location_node_id: str = Field(
+        ..., max_length=100, description="The node ID where incident occurred"
+    )
+    incident_type: str = Field(
+        ..., max_length=100, description="e.g. 'Spill', 'Crowd Surge', 'Medical'"
+    )
+    details: str = Field(
+        ..., max_length=1000, description="Free text details of the incident"
+    )
     stadium_id: str = Field(
         "stadium_metlife", max_length=100, description="The stadium identifier"
     )
