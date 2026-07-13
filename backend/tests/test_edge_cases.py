@@ -1,5 +1,7 @@
 import json
+
 from fastapi.testclient import TestClient
+
 from app.main import app
 
 client = TestClient(app)
@@ -23,7 +25,7 @@ def test_ops_forbidden():
 def test_incident_reporting_flow():
     """Volunteers reporting incidents should propagate to subsequent summaries."""
     headers = {"Authorization": "Bearer metlife_director_2026"}
-    
+
     # 1. Report a new spill incident at Gate A
     report_payload = {
         "reporter_role": "Volunteer",
@@ -84,7 +86,7 @@ def test_prompt_injection_guard():
     }
     response = client.post("/api/assistant/chat", json=payload)
     assert response.status_code == 200
-    
+
     # Read streamed SSE content
     content = ""
     for line in response.iter_lines():

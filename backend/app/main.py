@@ -9,13 +9,13 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import settings
 from app.exceptions import (
-    RouteNotFoundError,
-    NodeNotFoundError,
-    UnsupportedLanguageError,
     AuthenticationError,
-    ForbiddenAccessError,
-    RateLimitExceededError,
     ConcurrentConnectionsExceededError,
+    ForbiddenAccessError,
+    NodeNotFoundError,
+    RateLimitExceededError,
+    RouteNotFoundError,
+    UnsupportedLanguageError,
 )
 from app.routers import assistant, crowd, navigation, ops_dashboard, transit
 

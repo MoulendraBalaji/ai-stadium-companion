@@ -8,7 +8,7 @@ MAP_PATH = os.path.join(
 )
 
 
-from app.exceptions import RouteNotFoundError, NodeNotFoundError
+from app.exceptions import NodeNotFoundError, RouteNotFoundError
 
 
 def load_stadium_map() -> dict[str, Any]:

@@ -34,7 +34,7 @@ async def get_crowd_status(stadium_id: str = "stadium_metlife"):
         )
 
     return CrowdStatusResponse(
-        zones=zones, 
+        zones=zones,
         timestamp=crowd_data.get("timestamp", "2026-07-07T20:30:56Z"),
         stadium_id=stadium_id
     )

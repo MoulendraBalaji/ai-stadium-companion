@@ -2,11 +2,12 @@ import json
 import logging
 import time
 import uuid
+
 from fastapi import APIRouter, Depends, Header
 
 from app.ai_service import generate_text
 from app.exceptions import AuthenticationError, ForbiddenAccessError
-from app.models.schemas import OpsSummaryResponse, IncidentReport, IncidentReportResponse
+from app.models.schemas import IncidentReport, IncidentReportResponse, OpsSummaryResponse
 from app.services.crowd_engine import load_crowd_feed
 
 logger = logging.getLogger("ops_router")

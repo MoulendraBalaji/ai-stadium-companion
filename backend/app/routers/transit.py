@@ -1,5 +1,6 @@
 import json
 import logging
+
 from fastapi import APIRouter, Query
 
 from app.ai_service import generate_text
@@ -110,7 +111,7 @@ async def get_transit_suggestions(
         # Return fallback structured response with calculated metrics
         m_co2, m_saved = calculate_sustainability_metrics(origin, "Metro")
         s_co2, s_saved = calculate_sustainability_metrics(origin, "Electric Shuttle")
-        
+
         return TransitResponse(
             origin=origin,
             destination="FIFA World Cup 2026 Stadium",
