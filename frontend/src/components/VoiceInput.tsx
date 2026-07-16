@@ -4,8 +4,17 @@ import { Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 interface VoiceInputProps {
   onTranscript: (text: string) => void;
   latestResponse: string | null;
+  language?: string;
   className?: string;
 }
+
+const LANG_MAP: Record<string, string> = {
+  en: 'en-US',
+  es: 'es-ES',
+  pt: 'pt-BR',
+  fr: 'fr-FR',
+  ar: 'ar-SA',
+};
 
 interface SpeechWindow extends Window {
   SpeechRecognition?: unknown;
@@ -15,6 +24,7 @@ interface SpeechWindow extends Window {
 export const VoiceInput: React.FC<VoiceInputProps> = ({
   onTranscript,
   latestResponse,
+  language = 'en',
   className = ''
 }) => {
   const [isListening, setIsListening] = useState(false);
@@ -48,7 +58,7 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({
     const recognition = new SpeechRecognition();
     recognition.continuous = false;
     recognition.interimResults = false;
-    recognition.lang = 'en-US';
+    recognition.lang = LANG_MAP[language] || 'en-US';
 
     recognition.onstart = () => {
       setIsListening(true);
@@ -71,7 +81,7 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({
     };
 
     recognitionRef.current = recognition;
-  }, [onTranscript]);
+  }, [onTranscript, language]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
@@ -88,13 +98,13 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({
         .trim();
       if (cleanText) {
         const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = 'en-US';
+        utterance.lang = LANG_MAP[language] || 'en-US';
         utterance.rate = 1.05;
         utterance.pitch = 1;
         synthesisRef.current.speak(utterance);
       }
     }
-  }, [latestResponse, speechEnabled]);
+  }, [latestResponse, speechEnabled, language]);
 
   const toggleListening = () => {
     if (!recognitionRef.current) return;

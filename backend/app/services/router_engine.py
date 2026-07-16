@@ -49,11 +49,9 @@ def find_shortest_path(
     """
     nodes_dict = {n["id"]: n for n in stadium_map.get("nodes", [])}
     if start_id not in nodes_dict:
-        raise NodeNotFoundError(
-            f"Start node '{start_id}' not found in the stadium map."
-        )
+        raise NodeNotFoundError(start_id)
     if end_id not in nodes_dict:
-        raise NodeNotFoundError(f"End node '{end_id}' not found in the stadium map.")
+        raise NodeNotFoundError(end_id)
 
     # In accessible mode, starting or destination nodes must be accessible
     if accessible_only:

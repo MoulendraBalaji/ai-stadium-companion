@@ -3,7 +3,7 @@ import logging
 
 from fastapi import APIRouter
 
-from app.ai_service import generate_text
+from app.ai_service import generate_text, strip_markdown_json
 from app.models.schemas import RouteRequest, RouteResponse, RouteStep
 from app.services.crowd_engine import load_crowd_feed
 from app.services.router_engine import (
@@ -68,16 +68,7 @@ async def get_route(request: RouteRequest):
         llm_response = await generate_text(
             prompt, system_instruction=system_instruction
         )
-        # Strip any potential markdown code blocks
-        clean_response = llm_response.strip()
-        if clean_response.startswith("```"):
-            # strip start and end blocks
-            lines = clean_response.splitlines()
-            if lines[0].startswith("```"):
-                lines = lines[1:]
-            if lines and lines[-1].strip() == "```":
-                lines = lines[:-1]
-            clean_response = "\n".join(lines).strip()
+        clean_response = strip_markdown_json(llm_response)
 
         parsed = json.loads(clean_response)
         target_node_id = parsed.get("node_id")

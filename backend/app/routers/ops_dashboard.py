@@ -5,7 +5,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, Header
 
-from app.ai_service import generate_text
+from app.ai_service import generate_text, strip_markdown_json
 from app.exceptions import AuthenticationError, ForbiddenAccessError
 from app.models.schemas import (
     IncidentReport,
@@ -139,14 +139,7 @@ async def get_ops_summary(
         response_text = await generate_text(
             prompt, system_instruction=system_instruction
         )
-        clean_text = response_text.strip()
-        if clean_text.startswith("```"):
-            lines = clean_text.splitlines()
-            if lines[0].startswith("```"):
-                lines = lines[1:]
-            if lines and lines[-1].strip() == "```":
-                lines = lines[:-1]
-            clean_text = "\n".join(lines).strip()
+        clean_text = strip_markdown_json(response_text)
 
         data = json.loads(clean_text)
         return OpsSummaryResponse(

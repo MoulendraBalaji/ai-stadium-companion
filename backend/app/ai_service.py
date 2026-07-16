@@ -27,6 +27,19 @@ INJECTION_KEYWORDS = [
 ]
 
 
+def strip_markdown_json(text: str) -> str:
+    """Strips markdown code fences from LLM JSON responses."""
+    clean = text.strip()
+    if clean.startswith("```"):
+        lines = clean.splitlines()
+        if lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        clean = "\n".join(lines).strip()
+    return clean
+
+
 def check_prompt_injection(text: str) -> bool:
     """
     Checks if the user content contains typical prompt injection markers.

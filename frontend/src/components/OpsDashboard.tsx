@@ -4,6 +4,7 @@ import { ShieldAlert, RefreshCw, Layers, CheckCircle2, TrendingUp, Users, Clock,
 
 export const OpsDashboard: React.FC = () => {
   const [zones, setZones] = useState<CrowdZoneStatus[]>([]);
+  const [crowdTips, setCrowdTips] = useState<string[]>([]);
   const [opsData, setOpsData] = useState<OpsSummaryResponse | null>(null);
   const [isLoadingFeed, setIsLoadingFeed] = useState(false);
   const [isLoadingSummary, setIsLoadingSummary] = useState(false);
@@ -47,6 +48,7 @@ export const OpsDashboard: React.FC = () => {
     try {
       const res = await api.getCrowdStatus();
       setZones(res.zones);
+      setCrowdTips(res.crowd_management_tips || []);
     } catch (err: unknown) {
       console.error(err);
       setErrorMsg('Failed to load live telemetry.');
@@ -193,6 +195,35 @@ export const OpsDashboard: React.FC = () => {
               Simulated live IoT sensor telemetry.
             </div>
           </div>
+
+          {crowdTips.length > 0 && (
+            <div className="card p-5 flex flex-col">
+              <div className="flex items-center gap-3 pb-4 mb-4" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                <div className="w-9 h-9 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center">
+                  <TrendingUp size={15} className="text-accent" />
+                </div>
+                <h2 className="text-sm font-bold font-display uppercase tracking-wider" style={{ color: 'var(--color-text-strong)' }}>
+                  Crowd Management Tips
+                </h2>
+              </div>
+              <div className="space-y-2.5">
+                {crowdTips.map((tip, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3 rounded-xl text-xs leading-relaxed animate-fade-in-up"
+                    style={{
+                      background: tip.startsWith('ALERT') ? 'rgba(239, 68, 68, 0.05)' : 'rgba(59, 130, 246, 0.05)',
+                      border: `1px solid ${tip.startsWith('ALERT') ? 'rgba(239, 68, 68, 0.15)' : 'rgba(59, 130, 246, 0.15)'}`,
+                      color: tip.startsWith('ALERT') ? '#f87171' : 'var(--color-text-secondary)',
+                      animationDelay: `${idx * 80}ms`
+                    }}
+                  >
+                    {tip}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="card p-5 flex flex-col">
             <div className="flex items-center gap-3 pb-4 mb-4" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>

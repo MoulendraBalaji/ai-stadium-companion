@@ -66,6 +66,10 @@ class CrowdStatusResponse(BaseModel):
     zones: list[CrowdZoneStatus]
     timestamp: str
     stadium_id: str = "stadium_metlife"
+    crowd_management_tips: list[str] = Field(
+        default_factory=list,
+        description="Actionable crowd management recommendations based on live zone data",
+    )
 
 
 class OpsSummaryResponse(BaseModel):

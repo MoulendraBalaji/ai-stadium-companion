@@ -1,9 +1,10 @@
+import hashlib
 import json
 import logging
 
 from fastapi import APIRouter, Query
 
-from app.ai_service import generate_text
+from app.ai_service import generate_text, strip_markdown_json
 from app.models.schemas import TransitOption, TransitResponse
 
 logger = logging.getLogger("transit_router")
@@ -23,11 +24,13 @@ EMISSION_FACTORS = {
 def calculate_sustainability_metrics(origin: str, mode: str) -> tuple[float, float]:
     """
     Calculates CO2 emissions and CO2 savings compared to a gasoline car.
-    Uses a stable, deterministic distance based on the length of the origin text.
+    Uses a stable, deterministic distance derived from a hash of the origin text
+    to ensure consistent results across repeated calls for the same origin.
     """
+    origin_hash = int(hashlib.md5(origin.encode()).hexdigest()[:8], 16)
     # Deterministic distance between 5 and 20 kilometers
-    distance_km = (len(origin) % 15) + 5.0
-    factor = EMISSION_FACTORS.get(mode, 35.0)  # default to metro emission factor
+    distance_km = (origin_hash % 150) / 10.0 + 5.0
+    factor = EMISSION_FACTORS.get(mode, 35.0)
     co2_grams = distance_km * factor
     co2_saved = (EMISSION_FACTORS["Gasoline Car"] - factor) * distance_km
     return round(co2_grams, 1), round(co2_saved, 1)
@@ -70,14 +73,7 @@ async def get_transit_suggestions(
         response_text = await generate_text(
             prompt, system_instruction=system_instruction
         )
-        clean_text = response_text.strip()
-        if clean_text.startswith("```"):
-            lines = clean_text.splitlines()
-            if lines[0].startswith("```"):
-                lines = lines[1:]
-            if lines and lines[-1].strip() == "```":
-                lines = lines[:-1]
-            clean_text = "\n".join(lines).strip()
+        clean_text = strip_markdown_json(response_text)
 
         data = json.loads(clean_text)
         options = []

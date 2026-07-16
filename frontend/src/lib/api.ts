@@ -29,6 +29,7 @@ export interface CrowdZoneStatus {
 export interface CrowdStatusResponse {
   zones: CrowdZoneStatus[];
   timestamp: string;
+  crowd_management_tips: string[];
 }
 
 export interface OpsSummaryResponse {
@@ -204,8 +205,8 @@ export const api = {
           }
         }
       }
-    } catch (err: any) {
-      onError(err instanceof Error ? err : new Error(err?.message || 'Unknown stream error'));
+    } catch (err: unknown) {
+      onError(err instanceof Error ? err : new Error(String(err)));
     }
   }
 };

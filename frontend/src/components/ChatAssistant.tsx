@@ -232,6 +232,7 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({ onRouteRequested }
         <VoiceInput
           onTranscript={handleVoiceTranscript}
           latestResponse={getLatestAssistantReply()}
+          language={selectedLanguage || 'en'}
         />
 
         <div className="flex-1 relative">
